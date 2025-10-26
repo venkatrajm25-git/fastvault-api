@@ -4,6 +4,7 @@ import os
 from dotenv import load_dotenv
 
 load_dotenv()
+from routes.v1 import auth_route
 
 
 env = os.getenv("FASTAPI_ENV", "development")
@@ -17,6 +18,8 @@ else:
 print("Current Environment:", env.capitalize())
 
 app = FastAPI()
+
+app.include_router(auth_route.router)
 
 
 @app.get("/")
