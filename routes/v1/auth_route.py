@@ -1,7 +1,6 @@
-from fastapi import APIRouter, Depends, Request
+from fastapi import APIRouter, Depends, Request, Response
 from config.v1.config_dev import getDBConnection
 from sqlalchemy.orm import Session
-from models.v1.user_model import User
 from fastapi import HTTPException
 from controllers.v1.auth_controller import AuthController
 from schema.v1.auth_schema import RegisterUserBaseModel, LoginUserBaseModel
@@ -10,6 +9,7 @@ from config.v1.config import Config
 from dao.v1.auth_dao import AuthDAO
 from middleware.v1.token_creation import create_access_token
 from fastapi.responses import JSONResponse
+from utils.v1.redis_client import blacklist_token
 
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
 
@@ -62,3 +62,37 @@ async def register_user(
 @router.post("/login")
 async def login(data: LoginUserBaseModel, db: Session = Depends(getDBConnection)):
     return await AuthController.login_controller(data, db)
+
+
+@router.get("/logout")
+async def logout(request: Request, response: Response):
+    access_token = request.cookies.get("access_token")
+    refresh_token = request.cookies.get("refresh_token")
+
+    if not access_token and not refresh_token:
+        raise HTTPException(status_code=400, detail="Tokens Missing.")
+
+    if access_token:
+        blacklist_token(access_token)
+    if refresh_token:
+        blacklist_token(refresh_token)
+
+    # Delete both cookies from client side
+    response.delete_cookie(
+        key="access_token",
+        path="/",
+        secure=True,
+        httponly=True,
+        samesite="lax",
+    )
+    response.delete_cookie(
+        key="refresh_token",
+        path="/",
+        secure=True,
+        httponly=True,
+        samesite="lax",
+    )
+
+    return JSONResponse(
+        content={"success": True, "message": "Logged Out Successfully."}
+    )
