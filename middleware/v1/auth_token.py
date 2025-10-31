@@ -42,9 +42,9 @@ def token_required(required_role: str = None, required_permission: tuple = None)
         role_name = (
             db.query(Role.role_name)
             .filter_by(id=role_id, is_deleted=0, status=1)
-            .first()
+            .first()[0]
         )
-        if required_role and role_name != required_role:
+        if required_role and role_name.lower() != required_role:
             raise HTTPException(status_code=403, detail="Permission denied.")
 
         # 5️⃣ Permission-based check (if required)

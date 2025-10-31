@@ -3,6 +3,7 @@ from config.v1.config_dev import getDBConnection
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from controllers.v1.auth_controller import AuthController
+from models.v1.user_model import User
 from schema.v1.auth_schema import RegisterUserBaseModel, LoginUserBaseModel
 import jwt
 from config.v1.config import Config
@@ -10,6 +11,7 @@ from dao.v1.auth_dao import AuthDAO
 from middleware.v1.token_creation import create_access_token
 from fastapi.responses import JSONResponse
 from utils.v1.redis_client import blacklist_token
+from middleware.v1.auth_token import token_required
 
 router = APIRouter(prefix="/v1/auth", tags=["Auth"])
 
@@ -64,8 +66,19 @@ async def login(data: LoginUserBaseModel, db: Session = Depends(getDBConnection)
     return await AuthController.login_controller(data, db)
 
 
-@router.get("/logout")
-async def logout(request: Request, response: Response):
+#! delete this
+@router.get("/dummy-route")
+async def dummy_route(
+    db: Session = Depends(getDBConnection),
+    user: dict = Depends(token_required(required_role="admin")),
+):
+    user_id = user.get("user_id")
+    data = db.query(User).filter(User.id == user_id).first()
+    return {"user_name": data.user_name, "message": "Route Working."}
+
+
+@router.post("/logout")
+async def logout(request: Request, user: dict = Depends(token_required())):
     access_token = request.cookies.get("access_token")
     refresh_token = request.cookies.get("refresh_token")
 
@@ -77,7 +90,10 @@ async def logout(request: Request, response: Response):
     if refresh_token:
         blacklist_token(refresh_token)
 
-    # Delete both cookies from client side
+    response = JSONResponse(
+        content={"success": True, "message": "Logged Out Successfully."}
+    )
+
     response.delete_cookie(
         key="access_token",
         path="/",
@@ -93,6 +109,4 @@ async def logout(request: Request, response: Response):
         samesite="lax",
     )
 
-    return JSONResponse(
-        content={"success": True, "message": "Logged Out Successfully."}
-    )
+    return response

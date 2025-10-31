@@ -1,0 +1,5 @@
+# user_email:
+  # module: [Permissions]
+
+admin@jeenox.com:
+  Role: [Read, Create]
