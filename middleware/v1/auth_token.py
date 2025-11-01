@@ -2,9 +2,9 @@ from fastapi import Depends, HTTPException, Request
 from jose import jwt, JWTError
 from sqlalchemy.orm import Session
 from config.v1.config_dev import getDBConnection
-from models.v1.user_model import User
-from models.v1.role_model import Role
-from models.v1.permission_model import RolePermission, UserPermission
+from model.v1.user_model import User
+from model.v1.role_model import Role
+from model.v1.permission_model import RolePermission, UserPermission
 from config.v1.config import Config
 from utils.v1.redis_client import is_token_blacklisted
 

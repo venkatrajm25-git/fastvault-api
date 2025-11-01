@@ -1,29 +1,21 @@
 from fastapi import FastAPI
 from fastapi.responses import JSONResponse
-import os
-from dotenv import load_dotenv
+from config.v1.env_loader import load_environment
 
-load_dotenv()
-from routes.v1 import auth_route
+# --- load env
+load_environment()
+
+app = FastAPI(redoc_url=False)
 
 
-env = os.getenv("FASTAPI_ENV", "development")
-if env == "testing":
-    load_dotenv(".env.test")
-elif env == "production":
-    load_dotenv(".env.prod")
-else:
-    pass
+from routes.v1.route_register import register_routes
+from core.v1.exception_handler import register_exception_handlers
 
-print("Current Environment:", env.capitalize())
+register_routes(app)
 
-app = FastAPI()
-
-app.include_router(auth_route.router)
+register_exception_handlers(app)
 
 
 @app.get("/")
 async def home():
-    return JSONResponse(
-        content={"success": True, "message": "FastVaultAPI is working", "env": env}
-    )
+    return JSONResponse(content={"success": True, "message": "FastVaultAPI is working"})

@@ -4,8 +4,9 @@ from helpers.v1.permission_helpers import (
 )
 
 from model.v1.module_model import Module
-from model.v1.perm_model import Permission, RolePermission, UserPermission
-from utils.v1.lang_utils import translate, translate_many, translate_pair
+from model.v1.permission_model import Permission, RolePermission, UserPermission
+
+# from utils.v1.lang_utils import translate, translate_many, translate_pair
 from services.v1.permission_services import Perm_Serv, Module_Serv
 from dao.v1.perm_dao import RolePerm_DBConn, UserPerm_DBConn
 from dao.v1.user_dao import user_databaseConnection
@@ -49,19 +50,17 @@ class PermissionModule:
                 if not role_dict.get(role_id, []):
                     return JSONResponse(
                         content={
-                            translate(
-                                "message", lang=accept_language
-                            ): "Role ID Not Found."
+                            "success": False,
+                            "message": "Role ID Not Found.",
                         },
                         status_code=400,
                     )
                 perm_logger.info(f"Returning permissions for role_id: {role_id}")
                 return JSONResponse(
                     content={
-                        translate(
-                            "message", lang=accept_language
-                        ): "Role permission fetched.",
-                        str(role_id): role_dict.get(role_id, []),
+                        "success": True,
+                        "message": "Role permission fetched.",
+                        "role_id": role_dict.get(role_id, []),
                     },
                     status_code=200,
                 )
@@ -69,9 +68,8 @@ class PermissionModule:
             perm_logger.info("Returning all role permissions.")
             return JSONResponse(
                 content={
-                    translate(
-                        "message", lang=accept_language
-                    ): "Fetched all roles successfully.",
+                    "success": True,
+                    "message": "Fetched all roles successfully.",
                     "data": role_dict,
                 },
                 status_code=200,
@@ -79,7 +77,7 @@ class PermissionModule:
         except Exception as e:
             perm_logger.error(f"Get Role Permission failed: {str(e)}")
             return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
+                content={"message": str(e)},
                 status_code=400,
             )
 

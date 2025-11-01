@@ -3,17 +3,17 @@ from config.v1.config_dev import getDBConnection
 from sqlalchemy.orm import Session
 from fastapi import HTTPException
 from controllers.v1.auth_controller import AuthController
-from models.v1.user_model import User
+from model.v1.user_model import User
 from schema.v1.auth_schema import RegisterUserBaseModel, LoginUserBaseModel
 import jwt
 from config.v1.config import Config
 from dao.v1.auth_dao import AuthDAO
-from middleware.v1.token_creation import create_access_token
+from utils.v1.token_generation import create_access_token
 from fastapi.responses import JSONResponse
 from utils.v1.redis_client import blacklist_token
 from middleware.v1.auth_token import token_required
 
-router = APIRouter(prefix="/v1/auth", tags=["Auth"])
+router = APIRouter()
 
 
 @router.post("/refresh")

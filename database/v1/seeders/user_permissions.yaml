@@ -1,5 +1,5 @@
 # user_email:
   # module: [Permissions]
 
-admin@jeenox.com:
+masteradmin@gmail.com:
   Role: [Read, Create]

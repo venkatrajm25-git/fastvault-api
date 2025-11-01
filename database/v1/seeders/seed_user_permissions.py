@@ -1,6 +1,6 @@
-from model.v1.user_model import Users
+from model.v1.user_model import User
 from model.v1.module_model import Module
-from model.v1.perm_model import Permission, UserPermission
+from model.v1.permission_model import Permission, UserPermission
 import yaml
 
 
@@ -14,13 +14,15 @@ def seed_user_permissions(yaml_data, db):
         # Step 1: Build valid set from YAML
         valid_permissions = set()
         for email, modules in yaml_data.items():
-            user = db.query(Users).filter(Users.email == email).first()
+            user = db.query(User).filter(User.email == email).first()
             if not user:
                 print(f"User not found: {email}")
                 continue
 
             for module_name, actions in modules.items():
-                module = db.query(Module).filter(Module.name == module_name).first()
+                module = (
+                    db.query(Module).filter(Module.module_name == module_name).first()
+                )
                 if not module:
                     print(f"Module not found: {module_name}")
                     continue
@@ -28,7 +30,7 @@ def seed_user_permissions(yaml_data, db):
                 for action_name in actions:
                     permission = (
                         db.query(Permission)
-                        .filter(Permission.name == action_name)
+                        .filter(Permission.permission_name == action_name)
                         .first()
                     )
                     if not permission:
@@ -50,9 +52,9 @@ def seed_user_permissions(yaml_data, db):
 
                     if existing:
                         if existing.is_deleted:
-                            existing.is_deleted = False
+                            existing.is_deleted = 0
                             print(
-                                f"♻️ Restored: {email} → {module.name}:{permission.name}"
+                                f"♻️ Restored: {email} → {module.module_name}:{permission.permission_name}"
                             )
                     else:
                         db.add(
@@ -60,14 +62,16 @@ def seed_user_permissions(yaml_data, db):
                                 user_id=user.id,
                                 module_id=module.id,
                                 permission_id=permission.id,
-                                is_deleted=False,
+                                is_deleted=0,
                             )
                         )
-                        print(f"✅ Inserted: {email} → {module.name}:{permission.name}")
+                        print(
+                            f"✅ Inserted: {email} → {module.module_name}:{permission.permission_name}"
+                        )
 
         # Step 2: Mark as deleted if not in YAML
         all_existing = (
-            db.query(UserPermission).filter(UserPermission.is_deleted == False).all()
+            db.query(UserPermission).filter(UserPermission.is_deleted == 0).all()
         )
         for entry in all_existing:
             key = (entry.user_id, entry.module_id, entry.permission_id)

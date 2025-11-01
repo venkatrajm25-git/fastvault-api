@@ -1,9 +1,9 @@
 from os import name
-import yaml
 from sqlalchemy.orm import Session
+import yaml
 from model.v1.module_model import Module
 from model.v1.user_model import Role
-from model.v1.perm_model import Permission, RolePermission
+from model.v1.permission_model import Permission, RolePermission
 
 
 # Load YAML from file
@@ -18,13 +18,15 @@ def seed_role_permissions(yaml_data, db: Session):
         valid_permissions = set()
 
         for role_name, modules in yaml_data.items():
-            role = db.query(Role).filter(Role.rolename == role_name).first()
+            role = db.query(Role).filter(Role.role_name == role_name).first()
             if not role:
                 print(f"Role not found: {role_name}")
                 continue
 
             for module_name, actions in modules.items():
-                module = db.query(Module).filter(Module.name == module_name).first()
+                module = (
+                    db.query(Module).filter(Module.module_name == module_name).first()
+                )
                 if not module:
                     print(f"Module not found: {module_name}")
                     continue
@@ -32,7 +34,7 @@ def seed_role_permissions(yaml_data, db: Session):
                 for action_name in actions:
                     permission = (
                         db.query(Permission)
-                        .filter(Permission.name == action_name)
+                        .filter(Permission.permission_name == action_name)
                         .first()
                     )
                     if not permission:
@@ -54,9 +56,9 @@ def seed_role_permissions(yaml_data, db: Session):
 
                     if existing:
                         if existing.is_deleted:
-                            existing.is_deleted = False
+                            existing.is_deleted = 0
                             print(
-                                f"♻️ Restored: {role.rolename} → {module.name}:{permission.name}"
+                                f"♻️ Restored: {role.role_name} → {module.module_name}:{permission.permission_name}"
                             )
                     else:
                         db.add(
@@ -64,16 +66,16 @@ def seed_role_permissions(yaml_data, db: Session):
                                 role_id=role.id,
                                 module_id=module.id,
                                 permission_id=permission.id,
-                                is_deleted=False,
+                                is_deleted=0,
                             )
                         )
                         print(
-                            f"✅ Inserted: {role.rolename} → {module.name}:{permission.name}"
+                            f"✅ Inserted: {role.role_name} → {module.module_name}:{permission.permission_name}"
                         )
 
         # Step 2: Soft-delete if not in YAML
         all_existing = (
-            db.query(RolePermission).filter(RolePermission.is_deleted == False).all()
+            db.query(RolePermission).filter(RolePermission.is_deleted == 0).all()
         )
         for entry in all_existing:
             key = (entry.role_id, entry.module_id, entry.permission_id)

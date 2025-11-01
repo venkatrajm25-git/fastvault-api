@@ -1,16 +1,19 @@
 from fastapi import APIRouter, Depends, HTTPException, status
 from fastapi.openapi.docs import get_redoc_html, get_swagger_ui_html
 from fastapi.openapi.utils import get_openapi
-from main import security, app
-from fastapi.security import HTTPBasicCredentials
+from main import app
+from fastapi.security import HTTPBasicCredentials, HTTPBasic
 
 
 router = APIRouter()
 
+# simple local security instance
+security = HTTPBasic()
+
 
 def get_current_username(credentials: HTTPBasicCredentials = Depends(security)):
     correct_username = "admin"
-    correct_password = "secret"
+    correct_password = "secret@321"
     if not (
         credentials.username == correct_username
         and credentials.password == correct_password

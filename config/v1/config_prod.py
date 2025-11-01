@@ -1,6 +1,5 @@
-from typing import final
 from sqlalchemy import create_engine
-from config.v1.config import Config
+from .config import ProductionConfig as Config
 from sqlalchemy.orm import sessionmaker
 from sqlalchemy.ext.declarative import declarative_base
 

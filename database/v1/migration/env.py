@@ -1,7 +1,13 @@
 from logging.config import fileConfig
 from sqlalchemy import engine_from_config, pool
 from alembic import context
-from models.v1 import module_model, user_model, role_model, permission_model
+from model.v1 import (
+    module_model,
+    user_model,
+    role_model,
+    permission_model,
+    user_session_model,
+)
 
 import os
 from config.v1.config_dev import Base, Config  # import your Base & Config class

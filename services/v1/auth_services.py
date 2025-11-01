@@ -4,7 +4,7 @@ from fastapi.responses import JSONResponse
 from utils.v1.auth_utils import hash_password, verify_password
 from sqlalchemy.exc import IntegrityError
 from fastapi import HTTPException
-from middleware.v1.token_creation import create_access_token, create_refresh_token
+from utils.v1.token_generation import create_access_token, create_refresh_token
 
 
 class AuthServices:

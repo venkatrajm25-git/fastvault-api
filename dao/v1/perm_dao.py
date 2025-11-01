@@ -1,9 +1,10 @@
-from model.v1.perm_model import Permission, RolePermission, UserPermission
+from model.v1.permission_model import Permission, RolePermission, UserPermission
 from sqlalchemy.exc import IntegrityError
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
-from utils.v1.lang_utils import translate, translate_many, translate_pair
+
+# from utils.v1.lang_utils import translate, translate_many, translate_pair
 
 
 class Permissions_DBConn:
@@ -111,11 +112,8 @@ class RolePerm_DBConn:
             db.commit()  # Committing the transaction
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["role", "permission", "added_successfully"],
-                        lang=accept_language,
-                    ),
+                    "success": True,
+                    "meesage": "Role Permission Added Successfully.",
                 },
                 status_code=201,
             )
@@ -150,10 +148,8 @@ class RolePerm_DBConn:
             }
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["role", "permission", "updated_successfully"]
-                    ),
+                    "success": True,
+                    "message": "Role Permission Updated Successfully.",
                     "updated_fields": updated_data,
                 },
                 status_code=201,
@@ -164,10 +160,8 @@ class RolePerm_DBConn:
             if "1062" in str(ie.orig):
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["role", "permission", "already_exists"]
-                        ),
+                        "success": False,
+                        "message": "Role Permission Already Exists.",
                     },
                     status_code=400,
                 )
@@ -183,7 +177,7 @@ class RolePerm_DBConn:
         except Exception as e:
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
+                    "success": False,
                     "message": str(e),
                 },
                 status_code=400,

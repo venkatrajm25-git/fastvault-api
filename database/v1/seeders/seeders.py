@@ -10,10 +10,13 @@ from database.v1.seeders.seed_user_permissions import (
 
 # Import all your models
 from model.v1.module_model import Module
-from model.v1.perm_model import Permission
-from model.v1.user_model import StatusMaster, Role, Users
+from model.v1.permission_model import Permission
+from model.v1.user_model import StatusMaster, Role, User
 import sys
 import os
+from datetime import datetime
+
+from utils.v1.auth_utils import hash_password
 
 sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "../../../")))
 
@@ -35,20 +38,14 @@ def safe_add_all(db: Session, records: list):
 def seed_status_master(db):
     data = [
         StatusMaster(
-            id=1,
-            status="Active",
-            created_by=1,
-            modified_by=None,
-            created_at=datetime(2025, 6, 16, 12, 10, 34),
-            modified_at=datetime(2025, 6, 16, 12, 10, 34),
+            id=1, status="Active", created_by=1, created_at=datetime.now(), is_deleted=0
         ),
         StatusMaster(
             id=2,
             status="Inactive",
             created_by=1,
-            modified_by=None,
-            created_at=datetime(2025, 6, 16, 12, 10, 34),
-            modified_at=datetime(2025, 6, 16, 12, 10, 34),
+            created_at=datetime.now(),
+            is_deleted=0,
         ),
     ]
     safe_add_all(db, data)
@@ -59,26 +56,26 @@ def seed_roles(db):
     data = [
         Role(
             id=1,
-            rolename="Admin",
+            role_name="Admin",
             status=1,
             created_by=1,
-            created_at=datetime(2025, 6, 16, 12, 9, 8),
+            created_at=datetime.now(),
             is_deleted=0,
         ),
         Role(
             id=2,
-            rolename="Manager",
+            role_name="Manager",
             status=1,
             created_by=1,
-            created_at=datetime(2025, 6, 16, 12, 9, 27),
+            created_at=datetime.now(),
             is_deleted=0,
         ),
         Role(
             id=3,
-            rolename="User",
+            role_name="User",
             status=2,
             created_by=1,
-            created_at=datetime(2025, 6, 16, 12, 9, 44),
+            created_at=datetime.now(),
             is_deleted=0,
         ),
     ]
@@ -87,45 +84,19 @@ def seed_roles(db):
 
 def seed_users(db):
     data = [
-        Users(
+        User(
             id=1,
-            email="admin@jeenox.com",
-            pwd="$2b$12$WRa4x/BEDfxYbmmpE3zbSenttknQpDUWr.XTTSttEbjDxwq6NnjI2",
-            username="Admin JeenoX",
+            email="masteradmin@gmail.com",
+            password=hash_password("admin@321"),
+            user_name="Admin",
             status=1,
-            role=1,
-            created_by=1,
-            modified_by=1,
-            created_at=datetime(2025, 6, 16, 12, 10, 37),
-            modified_at=datetime(2025, 7, 3, 19, 32, 57),
+            role_id=1,
+            created_by=None,
+            modified_by=None,
+            created_at=datetime.now(),
+            modified_at=datetime.now(),
             is_deleted=0,
-        ),
-        Users(
-            id=2,
-            email="manager@jeenox.com",
-            pwd="$2b$12$h0ncleKnEYtg7GjsQmlFEeJR0FtIRovNCbOVvmehO8/KqXAwhr6UC",
-            username="Manager",
-            status=1,
-            role=2,
-            created_by=1,
-            modified_by=1,
-            created_at=datetime(2025, 7, 3, 18, 35, 7),
-            modified_at=datetime(2025, 7, 8, 12, 46, 48),
-            is_deleted=0,
-        ),
-        Users(
-            id=3,
-            email="user@jeenox.com",
-            pwd="$2b$12$xs5bGflNIgM4/zNg5ZDm6uSyMJsRShaRSQkoME9XI/WFt0C5cEAvi",
-            username="User",
-            status=1,
-            role=3,
-            created_by=1,
-            modified_by=1,
-            created_at=datetime(2025, 7, 3, 18, 35, 7),
-            modified_at=datetime(2025, 7, 8, 12, 46, 48),
-            is_deleted=0,
-        ),
+        )
     ]
     safe_add_all(db, data)
 
@@ -135,11 +106,11 @@ def seed_modules(db):
     data = [
         Module(
             id=i + 1,
-            name=name,
+            module_name=name,
             created_by=None,
             modified_by=None,
-            created_at=datetime(2025, 6, 16, 12, 35, 45),
-            modified_at=datetime(2025, 6, 16, 12, 35, 45),
+            created_at=datetime.now(),
+            modified_at=datetime.now(),
             is_deleted=0,
         )
         for i, name in enumerate(names)
@@ -150,24 +121,20 @@ def seed_modules(db):
 def seed_permissions(db):
     names = ["Create", "Read", "Update", "Delete"]
     modified_bys = [None, 1, None, None]
-    modified_ats = [
-        datetime(2025, 6, 16, 12, 34, 15),
-        datetime(2025, 7, 2, 17, 58, 25),
-        datetime(2025, 6, 16, 12, 34, 15),
-        datetime(2025, 6, 16, 12, 34, 15),
-    ]
-    data = [
-        Permission(
+
+    data = []
+    for i, name in enumerate(names):
+        permission = Permission(
             id=i + 1,
-            name=name,
+            permission_name=name,
             created_by=None,
             modified_by=modified_bys[i],
-            created_at=datetime(2025, 6, 16, 12, 34, 15),
-            modified_at=modified_ats[i],
+            created_at=datetime.now(),
+            modified_at=datetime.now(),
             is_deleted=0,
         )
-        for i, name in enumerate(names)
-    ]
+        data.append(permission)
+
     safe_add_all(db, data)
 
 

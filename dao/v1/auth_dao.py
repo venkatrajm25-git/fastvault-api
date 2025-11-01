@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from models.v1.user_model import User
+from model.v1.user_model import User
 
 
 class AuthDAO:
