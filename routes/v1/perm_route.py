@@ -4,7 +4,7 @@ from middleware.v1.auth_token import token_required
 from sqlalchemy.orm import Session
 from database.v1.connection import getDBConnection
 from audit_trail.v1.audit_decorater import audit_loggable
-from model.v1.perm_model import RolePermission, UserPermission, Permission
+from model.v1.permission_model import RolePermission, UserPermission, Permission
 
 router = APIRouter()
 

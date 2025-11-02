@@ -4,8 +4,6 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy import text
 
-# from utils.v1.lang_utils import translate, translate_many, translate_pair
-
 
 class Permissions_DBConn:
     @staticmethod

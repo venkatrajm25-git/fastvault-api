@@ -1,5 +1,4 @@
 from services.v1.user_services import user_services
-from utils.v1.lang_utils import translate, translate_many, translate_pair
 from dao.v1.user_dao import user_databaseConnection
 from logging.handlers import RotatingFileHandler
 from fastapi.responses import JSONResponse
@@ -32,7 +31,7 @@ class UserController:
         except Exception as e:
             user_logger.error(f"error: {e}")
             return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
+                content={"message": str(e)},
                 status_code=400,
             )
 
@@ -51,14 +50,12 @@ class UserController:
 
             # Call service layer to update user
             result = await user_services.updateUser_serv(dataList, db, accept_language)
-            # if result :
-            #     return result, status_code
             user_logger.info("updateUser successful")
             return result
         except Exception as e:
             user_logger.error("updateUser failed: ", str(e))
             return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
+                content={"message": str(e)},
                 status_code=400,
             )
 
@@ -76,10 +73,8 @@ class UserController:
                 user_logger.info("User deleted successfully: %s", id)
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "true", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["user", "deleted_successfully"], lang=accept_language
-                        ),
+                        "success": True,
+                        "message": "User deleted successfully.",
                     },
                     status_code=200,
                 )
@@ -87,10 +82,8 @@ class UserController:
                 user_logger.error("User not deleted")
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["user", "deletion_failed"], lang=accept_language
-                        ),
+                        "success": False,
+                        "message": "User deletion failed.",
                     },
                     status_code=400,
                 )
@@ -99,7 +92,7 @@ class UserController:
             return JSONResponse(
                 content={
                     "success": False,
-                    translate("message", lang=accept_language): str(e),
+                    "message": str(e),
                 },
                 status_code=400,
             )
@@ -107,13 +100,6 @@ class UserController:
     # @staticmethod
     # def deleteAllUser():
     #     #! CURRENTLY NOT AVAILABLE
-    #     # # user_logger.info("deleteAllUser called")
-    #     # from database.db import getDBConnection
-    #     # with getDBConnection() as (db,cursor):
-    #     # query = "Delete from users"
-    #     # cursor.execute(query)
-    #     # db.commit()
-    #     # # user_logger.info("All users deleted successfully")
     #     return JSONResponse(
     #         content={"status": True, "message": "Deleted Successfully"},
     #         status_code=200,

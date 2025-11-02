@@ -1,10 +1,7 @@
-from utils.v1.lang_utils import translate, translate_many, translate_pair
 from logging.handlers import RotatingFileHandler
 from fastapi.responses import JSONResponse
 from dao.v1.role_dao import Role_DBConn
 import logging
-
-# from helpers.v1.role_helpers import verifyRoleID
 
 log_handler = RotatingFileHandler(
     "logs/v1/role_services.log", maxBytes=5 * 1024 * 1024, backupCount=5
@@ -50,7 +47,6 @@ class Role_Services:
             roles if not role_id else [role for role in roles if role.id == role_id]
         )
 
-        message_key = translate("message", lang=accept_language)
         message_text = (
             "Fetched all roles successfully."
             if not role_id
@@ -58,13 +54,13 @@ class Role_Services:
         )
 
         response = {
-            message_key: message_text,
+            "message": message_text,
             "roles": format_role_data(filtered_roles),
         }
 
-        return JSONResponse(
-            content=response, status_code=200
-        )  # Returning success status and JSON response
+        return JSONResponse(content=response, status_code=200)
+
+    # Returning success status and JSON response
 
     @staticmethod
     async def updateRole_serv(dataList, db, accept_language):
@@ -82,10 +78,8 @@ class Role_Services:
             logger.warning(f"No data found for role_id: {role_id}")
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["role", "not_found"], lang=accept_language
-                    ),
+                    "success": False,
+                    "message": "Role not found.",
                 },
                 status_code=400,
             )
@@ -99,18 +93,6 @@ class Role_Services:
         }
         updates = {k: v for k, v in updates.items() if v is not None}
 
-        # if not updates:
-        #     logger.info(f"No changes detected for role_id: {role_id}")
-        #     return JSONResponse(
-        #         content={
-        #             **translate_pair("success", "true", lang=accept_language),
-        #             translate("message", lang=accept_language): translate_many(
-        #                 ["no", "changes", "detected"], lang=accept_language
-        #             ),
-        #         },
-        #         status_code=200,
-        #     )
-
         # Step 5: Perform Update
         success = Role_DBConn.updateRoleDB(
             role_id, list(updates.keys()), list(updates.values()), db
@@ -121,10 +103,8 @@ class Role_Services:
             logger.info(f"Role ID {role_id} updated successfully.")
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["role", "updated_successfully"], lang=accept_language
-                    ),
+                    "success": True,
+                    "message": "Role updated successfully.",
                     "updated": [
                         {
                             "role_id": role_id,
@@ -142,10 +122,8 @@ class Role_Services:
         logger.error(f"Failed to update role_id: {role_id}")
         return JSONResponse(
             content={
-                **translate_pair("success", "false", lang=accept_language),
-                translate("message", lang=accept_language): translate_many(
-                    ["role", "update_failed"], lang=accept_language
-                ),
+                "success": False,
+                "message": "Role update failed.",
             },
             status_code=400,
         )

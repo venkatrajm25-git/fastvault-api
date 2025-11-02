@@ -1,4 +1,3 @@
-from utils.v1.lang_utils import translate, translate_many, translate_pair
 from dao.v1.module_dao import Module_DBConn
 from dao.v1.user_dao import user_databaseConnection
 from dao.v1.perm_dao import Permissions_DBConn
@@ -14,10 +13,8 @@ async def verifyModuleRolendPermID(
     if role_id not in data:
         return JSONResponse(
             content={
-                **translate_pair("status", "false", lang=accept_language),
-                translate("message", lang=accept_language): translate_many(
-                    ["role", "id", "not_available"], lang=accept_language
-                ),
+                "status": False,
+                "message": "Role ID not available",
             },
             status_code=400,
         )
@@ -27,10 +24,8 @@ async def verifyModuleRolendPermID(
     if module_id not in data:
         return JSONResponse(
             content={
-                **translate_pair("status", "false", lang=accept_language),
-                translate("message", lang=accept_language): translate_many(
-                    ["module", "id", "not_available"], lang=accept_language
-                ),
+                "status": False,
+                "message": "Module ID not available",
             },
             status_code=400,
         )
@@ -40,20 +35,16 @@ async def verifyModuleRolendPermID(
     if permission_id not in data:
         return JSONResponse(
             content={
-                **translate_pair("status", "false", lang=accept_language),
-                translate("message", lang=accept_language): translate_many(
-                    ["permission", "id", "not_available"], lang=accept_language
-                ),
+                "status": False,
+                "message": "Permission ID not available",
             },
             status_code=400,
         )
 
     return JSONResponse(
         content={
-            **translate_pair("status", "true", lang=accept_language),
-            translate(
-                "message", lang=accept_language
-            ): "Module Role and Permission ID Verified",
+            "status": True,
+            "message": "Module, Role, and Permission ID verified successfully",
         },
         status_code=201,
     )  # Return True if verification is successful
@@ -67,10 +58,8 @@ async def verifyModuleUserndPermID(
     if user_id not in data:
         return JSONResponse(
             content={
-                **translate_pair("status", "false", lang=accept_language),
-                translate("message", lang=accept_language): translate_many(
-                    ["user", "id", "not_available"], lang=accept_language
-                ),
+                "status": False,
+                "message": "User ID not available",
             },
             status_code=400,
         )
@@ -80,10 +69,8 @@ async def verifyModuleUserndPermID(
     if module_id not in data:
         return JSONResponse(
             content={
-                **translate_pair("status", "false", lang=accept_language),
-                translate("message", lang=accept_language): translate_many(
-                    ["module", "id", "not_available"], lang=accept_language
-                ),
+                "status": False,
+                "message": "Module ID not available",
             },
             status_code=400,
         )
@@ -93,20 +80,16 @@ async def verifyModuleUserndPermID(
     if permission_id not in data:
         return JSONResponse(
             content={
-                **translate_pair("status", "false", lang=accept_language),
-                translate("message", lang=accept_language): translate_many(
-                    ["permission", "id", "not_available"], lang=accept_language
-                ),
+                "status": False,
+                "message": "Permission ID not available",
             },
             status_code=400,
         )
 
     return JSONResponse(
         content={
-            **translate_pair("success", "true", lang=accept_language),
-            translate(
-                "message", lang=accept_language
-            ): "Module User and Permission ID Verified",
+            "success": True,
+            "message": "Module, User, and Permission ID verified successfully",
         },
         status_code=200,
     )  # Return True if verification is successful

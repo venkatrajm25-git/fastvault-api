@@ -1,5 +1,4 @@
 from dao.v1.perm_dao import RolePerm_DBConn, UserPerm_DBConn, Permissions_DBConn
-from utils.v1.lang_utils import translate, translate_many, translate_pair
 from dao.v1.user_dao import user_databaseConnection
 from dao.v1.module_dao import Module_DBConn
 from logging.handlers import RotatingFileHandler
@@ -38,11 +37,8 @@ class Perm_Serv:
             perm_logger.error("Role permission ID %s not found.", rp_id)
             return JSONResponse(
                 content={
-                    translate("message", lang=accept_language): translate_many(
-                        ["role", "permission", "id", "not_available"],
-                        lang=accept_language,
-                    ),
-                    "success": "false",
+                    "success": False,
+                    "message": "Role Permission ID not available.",
                 },
                 status_code=400,
             )
@@ -60,94 +56,10 @@ class Perm_Serv:
                 recentUpdate.append(field)
                 data2update.append(new_value)
 
-        # if not recentUpdate:
-        #     perm_logger.info("No changes detected for Role Permission ID: %s", rp_id)
-        #     return JSONResponse(
-        #         content={
-        #             translate("message", lang=accept_language): translate_many(
-        #                 ["role", "permission", "already_exists"], lang=accept_language
-        #             ),
-        #             "success": "false",
-        #         },
-        #         status_code=400,
-        #     )
-
         perm_logger.info(
             "Role Permission ID %s updated fields: %s", rp_id, recentUpdate
         )
         return recentUpdate, data2update
-
-    # def updateRolePermissionService(
-    #     rp_id, role_id, module_id, permission_id, db, accept_language
-    # ):
-    #     """Update role permission details based on provided IDs."""
-
-    #     perm_logger.info("updateRolePermissionService called with rp_id: %s", rp_id)
-
-    #     try:
-    #         # Fetch existing role permission data
-    #         oldRolePermission = [
-    #             i for i in RolePerm_DBConn.getRPData(db) if i.id == rp_id
-    #         ][0]
-    #     except IndexError as e:
-    #         perm_logger.error(
-    #             "Role permission ID %s not found. Error: %s", rp_id, str(e)
-    #         )
-    #         return JSONResponse(
-    #             content={
-    #                 translate("message", lang=accept_language): translate_many(
-    #                     ["role", "permission", "id", "not_available"],
-    #                     lang=accept_language,
-    #                 ),
-    #                 translate(
-    #                     "message", lang=accept_language
-    #                 ): "Role Permission ID Not Found.",
-    #             },
-    #             status_code=400,
-    #         )
-
-    #     recentUpdate, data2update = [], []
-
-    #     # Checking if role_id needs an update
-    #     if role_id and role_id != oldRolePermission.role_id and role_id is not None:
-    #         recentUpdate.append("role_id")
-    #         data2update.append(role_id)
-
-    #     # Checking if module_id needs an update
-    #     if (
-    #         module_id
-    #         and module_id != oldRolePermission.module_id
-    #         and module_id is not None
-    #     ):
-    #         recentUpdate.append("module_id")
-    #         data2update.append(module_id)
-
-    #     # Checking if permission_id needs an update
-    #     if (
-    #         permission_id
-    #         and permission_id != oldRolePermission.permission_id
-    #         and permission_id is not None
-    #     ):
-    #         recentUpdate.append("permission_id")
-    #         data2update.append(permission_id)
-
-    #     if not recentUpdate and not data2update:
-    #         perm_logger.info("No changes detected for Role Permission ID: %s", rp_id)
-    #         return JSONResponse(
-    #             content={
-    #                 translate("message", lang=accept_language): "No Changes detected.",
-    #                 translate("message", lang=accept_language): translate_many(
-    #                     ["role", "permission", "already_exists"], lang=accept_language
-    #                 ),
-    #                 "success": "false",
-    #             },
-    #             status_code=400,
-    #         )
-
-    #     perm_logger.info(
-    #         "Role Permission ID %s updated fields: %s", rp_id, recentUpdate
-    #     )
-    #     return recentUpdate, data2update
 
     def updateUserPermissionService(
         up_id, user_id, module_id, permission_id, db, accept_language
@@ -164,11 +76,8 @@ class Perm_Serv:
             perm_logger.error(f"User permission ID %s not found {up_id}")
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["user", "permission", "id", "not_available"],
-                        lang=accept_language,
-                    ),
+                    "success": False,
+                    "message": "User Permission ID not available",
                 },
                 status_code=400,
             )
@@ -178,12 +87,7 @@ class Perm_Serv:
         if user_id not in valid_user_ids:
             perm_logger.error(f"User ID %s not found {user_id}")
             return JSONResponse(
-                content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["user", "id", "not_available"], lang=accept_language
-                    ),
-                },
+                content={"success": False, "message": "User ID not available"},
                 status_code=400,
             )
 
@@ -206,71 +110,6 @@ class Perm_Serv:
         )
         return recentUpdate, data2update
 
-    # def updateUserPermissionService(
-    #     up_id, user_id, module_id, permission_id, db, accept_language
-    # ):
-    #     """Update user permission details based on provided IDs."""
-
-    #     perm_logger.info("updateUserPermissionService called with up_id: %s", up_id)
-
-    #     # Check if up_id exists in the database
-    #     data = [i.id for i in UserPerm_DBConn.getUserPData(db)]
-    #     if up_id not in data:
-    #         perm_logger.error("User permission ID %s not found", up_id)
-    #         return JSONResponse(
-    #             content={
-    #                 **translate_pair("success", "false", lang=accept_language),
-    #                 translate("message", lang=accept_language): translate_many(
-    #                     ["user", "permission", "id", "not_available"],
-    #                     lang=accept_language,
-    #                 ),
-    #             },
-    #             status_code=400,
-    #         )
-
-    #     # Validate user_id existence
-    #     useridList = [i.id for i in user_databaseConnection.getUserTable(db)]
-    #     if user_id not in useridList:
-    #         perm_logger.error("User ID %s not found", user_id)
-    #         return JSONResponse(
-    #             content={
-    #                 **translate_pair("success", "false", lang=accept_language),
-    #                 translate("message", lang=accept_language): translate_many(
-    #                     ["user", "id", "not_available"], lang=accept_language
-    #                 ),
-    #             },
-    #             status_code=400,
-    #         )
-
-    #     # Fetch user permission data
-    #     data = [i for i in UserPerm_DBConn.getUserPData(db) if i.id == up_id][0]
-
-    #     recentUpdate, data2update = [], []
-
-    #     # Checking if user_id needs an update
-    #     if user_id and user_id != data.user_id and user_id is not None:
-    #         recentUpdate.append("user_id")
-    #         data2update.append(user_id)
-
-    #     # Checking if module_id needs an update
-    #     if module_id and module_id != data.module_id and module_id is not None:
-    #         recentUpdate.append("module_id")
-    #         data2update.append(module_id)
-
-    #     # Checking if permission_id needs an update
-    #     if (
-    #         permission_id
-    #         and permission_id != data.permission_id
-    #         and permission_id is not None
-    #     ):
-    #         recentUpdate.append("permission_id")
-    #         data2update.append(permission_id)
-
-    #     perm_logger.info(
-    #         "User Permission ID %s updated fields: %s", up_id, recentUpdate
-    #     )
-    #     return (recentUpdate, data2update)
-
     def getSingleUserPermission_Serv(user_id, db, accept_language):
         """Retrieve permissions associated with a single user."""
 
@@ -284,12 +123,7 @@ class Perm_Serv:
         if not data:
             perm_logger.warning(f"No permission data found for user_id: {user_id}")
             return JSONResponse(
-                content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["permission", "not_found"], lang=accept_language
-                    ),
-                },
+                content={"success": False, "message": "Permission not found."},
                 status_code=400,
             )
 
@@ -341,7 +175,7 @@ class Perm_Serv:
             perm_logger.info("Permission '%s' added successfully.", name)
         return uploadData
 
-    async def getPermission_Serv(permission_id, db, accept_language):
+    async def getPermission_Serv(permission_id, db):
         """Retrieve permission details based on permission_id."""
 
         perm_logger.info(
@@ -355,10 +189,8 @@ class Perm_Serv:
             perm_logger.info("Returning all permissions.")
             return JSONResponse(
                 content={
-                    translate(
-                        "message", lang=accept_language
-                    ): "data fetched successfully.",
-                    **translate_pair("success", "true", lang=accept_language),
+                    "message": "Data fetched successfully.",
+                    "success": True,
                     "data": [
                         {
                             "permission_id": i.id,
@@ -382,22 +214,19 @@ class Perm_Serv:
             perm_logger.error("Permission ID %s not found", permission_id)
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["permission", "not_found"], lang=accept_language
-                    ),
+                    "success": False,
+                    "message": "Permission not found.",
                 },
                 status_code=400,
             )
+
         perm_logger.info(
             "Permission details retrieved for permission_id: %s", permission_id
         )
         return JSONResponse(
             content={
-                translate(
-                    "message", lang=accept_language
-                ): "data fetched successfully.",
-                **translate_pair("success", "true", lang=accept_language),
+                "message": "Data fetched successfully.",
+                "success": True,
                 "data": [
                     {"permission_id": i.id, "name": i.name, "created_by": i.created_by}
                     for i in data
@@ -415,10 +244,8 @@ class Perm_Serv:
             perm_logger.error("Permission ID and Modified By are mandatory.")
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate(
-                        "message", lang=accept_language
-                    ): "Permission ID and Modified By are mandatory.",
+                    "success": False,
+                    "message": "Permission ID and Modified By are mandatory.",
                 },
                 status_code=400,
             )
@@ -428,10 +255,8 @@ class Perm_Serv:
             perm_logger.warning("Permission ID %s not available.", permission_id)
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["permission", "id", "not_available"], lang=accept_language
-                    ),
+                    "success": False,
+                    "message": "Permission ID not available.",
                 },
                 status_code=400,
             )
@@ -443,10 +268,8 @@ class Perm_Serv:
             perm_logger.error("Permission ID %s not found.", permission_id)
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["permission", "not_found"], lang=accept_language
-                    ),
+                    "success": False,
+                    "message": "Permission not found.",
                 },
                 status_code=400,
             )
@@ -468,10 +291,8 @@ class Perm_Serv:
             )
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["Nothing to change", "or", "permission", "already_exists"]
-                    ),
+                    "success": False,
+                    "message": "Nothing to change or permission already exists.",
                 },
                 status_code=400,
             )
@@ -488,10 +309,8 @@ class Perm_Serv:
             }
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["permission", "updated_successfully"], lang=accept_language
-                    ),
+                    "success": True,
+                    "message": "Permission updated successfully.",
                     "updated_fields": updated_data,
                 },
                 status_code=200,
@@ -506,10 +325,8 @@ class Perm_Serv:
             )
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate(
-                        "message", lang=accept_language
-                    ): "Permission update failed. Cannot add duplicate permission.",
+                    "success": False,
+                    "message": "Permission update failed. Cannot add duplicate permission.",
                 },
                 status_code=400,
             )
@@ -529,10 +346,8 @@ class Perm_Serv:
             perm_logger.warning("Permission ID %s not found.", permission_id)
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["permission", "not_found"], lang=accept_language
-                    ),
+                    "success": False,
+                    "message": "Permission not found.",
                 },
                 status_code=400,
             )
@@ -546,10 +361,8 @@ class Perm_Serv:
             )
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate(
-                        "message", lang=accept_language
-                    ): "Permission deletion failed. Maybe the permission is in use.",
+                    "success": False,
+                    "message": "Permission deletion failed. Maybe the permission is in use.",
                 },
                 status_code=400,
             )
@@ -557,10 +370,8 @@ class Perm_Serv:
         perm_logger.info("Permission ID %s deleted successfully.", permission_id)
         return JSONResponse(
             content={
-                **translate_pair("success", "true", lang=accept_language),
-                translate("message", lang=accept_language): translate_many(
-                    ["permission", "deleted_successfully"], lang=accept_language
-                ),
+                "success": True,
+                "message": "Permission deleted successfully.",
                 "deleted_field": permission_id,
             },
             status_code=200,
@@ -583,10 +394,8 @@ class Module_Serv:
             perm_logger.warning("Module ID %s not available.", module_id)
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["module", "id", "not_available"], lang=accept_language
-                    ),
+                    "success": False,
+                    "message": "Module ID not available.",
                 },
                 status_code=400,
             )
@@ -599,10 +408,8 @@ class Module_Serv:
             perm_logger.error("Module ID %s not found.", module_id)
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["module", "not_found"], lang=accept_language
-                    ),
+                    "success": False,
+                    "message": "Module not found.",
                 },
                 status_code=400,
             )
@@ -619,19 +426,6 @@ class Module_Serv:
         if modified_by and modified_by != module_data.modified_by:
             recentUpdate.append("modified_by")
             data2update.append(modified_by)
-
-        # If no updates are detected, log a warning and return a response
-        # if not recentUpdate:
-        #     perm_logger.warning("No changes detected for Module ID %s.", module_id)
-        #     return JSONResponse(
-        #         content={
-        #             **translate_pair("success", "false", lang=accept_language),
-        #             translate(
-        #                 "message", lang=accept_language
-        #             ): "Nothing to change or Module data already exists.",
-        #         },
-        #         status_code=400,
-        #     )
 
         # Update the database with the new values
         update_status = Module_DBConn.updateModuleDB(
@@ -654,10 +448,8 @@ class Module_Serv:
             )
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate(
-                        "message", lang=accept_language
-                    ): "Module update failed. Cannot add duplicate module.",
+                    "success": False,
+                    "message": "Module update failed. Cannot add duplicate module.",
                 },
                 status_code=400,
             )
@@ -671,11 +463,6 @@ class Module_Serv:
         # Log that the delete function has been called
         perm_logger.info("deleteModule_Serv called with module_id: %s", module_id)
 
-        # Check if module_id is provided
-        # if not module_id:
-        #     perm_logger.error("Module ID is mandatory for deletion.")
-        #     return JSONResponse(content={**translate_pair("status","false",lang=accept_language), translate("message",lang=accept_language): "Module ID is mandatory."}), 400
-
         # Fetch all module IDs from the database
         module_ids = [i.id for i in Module_DBConn.getModuleData(db)]
 
@@ -684,10 +471,8 @@ class Module_Serv:
             perm_logger.warning("Module ID %s not found.", module_id)
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["module", "not_found"], lang=accept_language
-                    ),
+                    "success": False,
+                    "message": "Module not found.",
                 },
                 status_code=400,
             )
@@ -704,8 +489,8 @@ class Module_Serv:
             perm_logger.error("Module deletion failed for module_id %s.", module_id)
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): "Something went wrong.",
+                    "success": False,
+                    "message": "Something went wrong.",
                 },
                 status_code=400,
             )

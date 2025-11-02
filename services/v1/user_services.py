@@ -1,11 +1,8 @@
-from utils.v1.lang_utils import translate, translate_many, translate_pair
 from dao.v1.user_dao import user_databaseConnection
 from logging.handlers import RotatingFileHandler
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import logging
-
-# from helpers.v1.helpers import verifyID
 
 log_handler = RotatingFileHandler(
     "logs/v1/user_services.log", maxBytes=5 * 1024 * 1024, backupCount=5
@@ -53,7 +50,8 @@ class user_services:
             logger.info("Returning all users data.")
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
+                    "success": True,
+                    "message": "Users fetched successfully.",
                     "users": users,
                 },
                 status_code=200,
@@ -85,18 +83,16 @@ class user_services:
         if users:
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
-                    translate("user", lang=accept_language): users,
+                    "success": True,
+                    "user": users,
                 },
                 status_code=200,
             )
         else:
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("user", lang=accept_language): translate_many(
-                        ["user", "id", "not_found"], lang=accept_language
-                    ),
+                    "success": False,
+                    "user": "User ID not found.",
                 },
                 status_code=400,
             )
@@ -119,9 +115,7 @@ class user_services:
             return JSONResponse(
                 content={
                     "success": False,
-                    translate("message", lang=accept_language): translate_many(
-                        ["user", "not_found"], lang=accept_language
-                    ),
+                    "message": "User not found.",
                 },
                 status_code=400,
             )
@@ -153,10 +147,8 @@ class user_services:
             }
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["user", "updated_successfully"], lang=accept_language
-                    ),
+                    "success": True,
+                    "message": "User updated successfully.",
                     "updated": [updated_data],
                 },
                 status_code=201,
@@ -164,10 +156,8 @@ class user_services:
 
         return JSONResponse(
             content={
-                **translate_pair("success", "false", lang=accept_language),
-                translate("message", lang=accept_language): translate_many(
-                    ["user", "update_failed"], lang=accept_language
-                ),
+                "success": False,
+                "message": "User update failed.",
             },
             status_code=400,
         )

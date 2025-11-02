@@ -6,7 +6,6 @@ from helpers.v1.permission_helpers import (
 from model.v1.module_model import Module
 from model.v1.permission_model import Permission, RolePermission, UserPermission
 
-# from utils.v1.lang_utils import translate, translate_many, translate_pair
 from services.v1.permission_services import Perm_Serv, Module_Serv
 from dao.v1.perm_dao import RolePerm_DBConn, UserPerm_DBConn
 from dao.v1.user_dao import user_databaseConnection
@@ -95,29 +94,11 @@ class PermissionModule:
             if not role_id or not module_id or not permission_id:
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        **translate_pair(
-                            "message", "must_fill_all", lang=accept_language
-                        ),
+                        "success": False,
+                        "message": "All fields (role_id, module_id, permission_id) must be filled.",
                     },
                     status_code=400,
                 )
-
-            # Convert inputs to integers
-            # try:
-            #     role_id = role_id
-            #     module_id = module_id
-            #     permission_id = permission_id
-            # except ValueError:
-            #     return JSONResponse(
-            #         content={
-            #             **translate_pair("success", "false", lang=accept_language),
-            #             **translate_pair(
-            #                 "message", "invalid_input", lang=accept_language
-            #             ),
-            #         },
-            #         status_code=400,
-            #     )
 
             perm_logger.info(
                 f"Received role_id: {role_id}, module_id: {module_id}, permission_id: {permission_id}"
@@ -144,10 +125,8 @@ class PermissionModule:
 
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["Role Permission", "already_exists"], lang=accept_language
-                        ),
+                        "success": False,
+                        "message": "Role Permission already exists.",
                     },
                     status_code=400,
                 )
@@ -163,7 +142,7 @@ class PermissionModule:
         except Exception as e:
             perm_logger.error(f"Add Role Permission failed: {e}")  # ✅ Fixed line
             return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
+                content={"message": str(e)},
                 status_code=400,
             )
 
@@ -173,90 +152,72 @@ class PermissionModule:
         Update an existing role permission in the database.
         """
         perm_logger.info("Updating role permission.")
-        try:
-            rp_id = data.get("rp_id") if data.get("rp_id") else ""
-            role_id = data.get("role_id") if data.get("role_id") else ""
-            module_id = data.get("module_id") if data.get("module_id") else ""
-            permission_id = (
-                data.get("permission_id") if data.get("permission_id") else ""
-            )
+        rp_id = data.get("rp_id") if data.get("rp_id") else ""
+        role_id = data.get("role_id") if data.get("role_id") else ""
+        module_id = data.get("module_id") if data.get("module_id") else ""
+        permission_id = data.get("permission_id") if data.get("permission_id") else ""
 
-            perm_logger.info(
-                f"Received update request for rp_id: {rp_id}, role_id: {role_id}, module_id: {module_id}, permission_id: {permission_id}"
-            )
-            if not rp_id:
-                perm_logger.warning("Missing Role Permission ID")
-                return JSONResponse(
-                    content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["role", "permission", "mandatory"], lang=accept_language
-                        ),
-                    },
-                    status_code=400,
-                )
-            # if not str(rp_id).isdigit():
-            #     return JSONResponse(
-            #         content={"message": "Invalid Input", "success": "false"},
-            #         status_code=400,
-            #     )
-            result = Perm_Serv.updateRolePermissionService(
-                rp_id, role_id, module_id, permission_id, db, accept_language
-            )
-
-            if isinstance(result, JSONResponse):
-                perm_logger.warning(
-                    "Update failed. No changes detected or invalid role permission ID."
-                )
-                return result
-
-            recentUpdate, data2update = result
-            uploadData = RolePerm_DBConn.updateRolePermissionDB(
-                recentUpdate, data2update, rp_id, db, accept_language
-            )
-
-            if not uploadData.status_code > 400:
-                perm_logger.info("Updated Successfully.")
-            return uploadData
-        except Exception as e:
-            perm_logger.error(f"Update Role Permission failed: {e}")  # ✅ Fixed line
+        perm_logger.info(
+            f"Received update request for rp_id: {rp_id}, role_id: {role_id}, module_id: {module_id}, permission_id: {permission_id}"
+        )
+        if not rp_id:
+            perm_logger.warning("Missing Role Permission ID")
             return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
+                content={
+                    "success": False,
+                    "message": "Role permission ID is mandatory.",
+                },
                 status_code=400,
             )
+        # if not str(rp_id).isdigit():
+        #     return JSONResponse(
+        #         content={"message": "Invalid Input", "success": "false"},
+        #         status_code=400,
+        #     )
+        result = Perm_Serv.updateRolePermissionService(
+            rp_id, role_id, module_id, permission_id, db, accept_language
+        )
+
+        if isinstance(result, JSONResponse):
+            perm_logger.warning(
+                "Update failed. No changes detected or invalid role permission ID."
+            )
+            return result
+
+        recentUpdate, data2update = result
+        uploadData = RolePerm_DBConn.updateRolePermissionDB(
+            recentUpdate, data2update, rp_id, db, accept_language
+        )
+
+        if not uploadData.status_code > 400:
+            perm_logger.info("Updated Successfully.")
+        return uploadData
 
     @staticmethod
     async def deleteRolePermission(rp_id, db, accept_language):
         """
         Delete a role permission from the database.
         """
-        try:
-            perm_logger.info("Received request to delete role permission.")
 
-            rolePermissionData = RolePerm_DBConn.getRPData(db)
-            rolePermission = None  # 💥 FIXED: Declare default
-            for i in rolePermissionData:
-                if i.id == rp_id:
-                    rolePermission = i
-                    break
+        perm_logger.info("Received request to delete role permission.")
 
-            if rolePermission:
-                result = RolePerm_DBConn.deleteRp(rp_id, db)
-                if result.status_code == 200:
-                    perm_logger.info(
-                        f"Role permission with ID {rp_id} deleted successfully."
-                    )
-                return result
-            else:
-                return JSONResponse(
-                    content={"message": "Role Permission Not found", "success": False},
-                    status_code=400,
+        rolePermissionData = RolePerm_DBConn.getRPData(db)
+        rolePermission = None  # 💥 FIXED: Declare default
+        for i in rolePermissionData:
+            if i.id == rp_id:
+                rolePermission = i
+                break
+
+        if rolePermission:
+            result = RolePerm_DBConn.deleteRp(rp_id, db)
+            if result.status_code == 200:
+                perm_logger.info(
+                    f"Role permission with ID {rp_id} deleted successfully."
                 )
-
-        except Exception as e:
-            perm_logger.error(f"Delete Role Permission failed: {str(e)}")
+            return result
+        else:
             return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
+                content={"message": "Role Permission Not found", "success": False},
                 status_code=400,
             )
 
@@ -268,72 +229,58 @@ class PermissionModule:
         """
         perm_logger.info("Received request to fetch single user permission.")
 
-        try:
-            # Validate input fields
-            if not email and not user_id:
-                perm_logger.warning("Missing mandatory fields: email or user_id.")
+        # Validate input fields
+        if not email and not user_id:
+            perm_logger.warning("Missing mandatory fields: email or user_id.")
+            return JSONResponse(
+                content={
+                    "success": False,
+                    "message": "Email or user_id must be provided.",
+                },
+                status_code=400,
+            )
+
+        # Retrieve user_id if only email is provided
+        if email and not user_id:
+            try:
+                user_id = [
+                    i.id
+                    for i in user_databaseConnection.getUserTable(db)
+                    if i.email == email
+                ][0]
+            except IndexError:
+                perm_logger.error(f"User with email '{email}' not found.")
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        **translate_pair(
-                            "message", "must_fill_all", lang=accept_language
-                        ),
+                        "success": False,
+                        "message": "User not found.",
                     },
                     status_code=400,
                 )
 
-            # Retrieve user_id if only email is provided
-            if email and not user_id:
-                try:
-                    user_id = [
-                        i.id
-                        for i in user_databaseConnection.getUserTable(db)
-                        if i.email == email
-                    ][0]
-                except IndexError:
-                    perm_logger.error(f"User with email '{email}' not found.")
-                    return JSONResponse(
-                        content={
-                            **translate_pair("success", "false", lang=accept_language),
-                            translate("message", lang=accept_language): translate_many(
-                                ["user", "not_found"], lang=accept_language
-                            ),
-                        },
-                        status_code=400,
-                    )
+        perm_logger.info(f"Fetching permission details for user_id: {user_id}")
 
-            perm_logger.info(f"Fetching permission details for user_id: {user_id}")
+        # Fetch permission details
+        result = Perm_Serv.getSingleUserPermission_Serv(user_id, db, accept_language)
+        if isinstance(result, JSONResponse):
+            perm_logger.warning("Failed to fetch user permission details.")
+            return result
 
-            # Fetch permission details
-            result = Perm_Serv.getSingleUserPermission_Serv(
-                user_id, db, accept_language
-            )
-            if isinstance(result, JSONResponse):
-                perm_logger.warning("Failed to fetch user permission details.")
-                return result
+        email_id, role_permission, user_permission = result
 
-            email_id, role_permission, user_permission = result
-
-            response = {
-                "data": {
-                    "user id": user_id,
-                    "email id": email_id,
-                    "role permission": role_permission,
-                    "user permission": user_permission,
-                }
+        response = {
+            "data": {
+                "user id": user_id,
+                "email id": email_id,
+                "role permission": role_permission,
+                "user permission": user_permission,
             }
+        }
 
-            perm_logger.info(
-                f"Successfully retrieved user permission details for user_id: {user_id}"
-            )
-            return JSONResponse(content=response, status_code=200)
-        except Exception as e:
-            perm_logger.error(f"get Single User Permission failed: {e}")
-            # perm_logger.error("get Single User Permission failed: ", str(e))
-            return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
-                status_code=400,
-            )
+        perm_logger.info(
+            f"Successfully retrieved user permission details for user_id: {user_id}"
+        )
+        return JSONResponse(content=response, status_code=200)
 
     @staticmethod
     async def getUserPermission(user_id, db, accept_language):
@@ -369,9 +316,7 @@ class PermissionModule:
                 perm_logger.info(f"Returning permissions for user_id: {user_id}")
                 return JSONResponse(
                     content={
-                        translate(
-                            "message", lang=accept_language
-                        ): "Fetched user permissions successfully.",
+                        "message": "Fetched user permissions successfully.",
                         str(userPermissionID): user_dict.get(user_id, []),
                     },
                     status_code=200,
@@ -380,9 +325,7 @@ class PermissionModule:
             perm_logger.info("Returning all user permissions.")
             return JSONResponse(
                 content={
-                    translate(
-                        "message", lang=accept_language
-                    ): "Fetched all users successfully.",
+                    "message": "Fetched all users successfully.",
                     "data": user_dict,
                 },
                 status_code=200,
@@ -391,7 +334,7 @@ class PermissionModule:
             perm_logger.error(f"Get User Permission failed: {e}")
             return JSONResponse(
                 content={
-                    translate("message", lang=accept_language): str(e),
+                    "message": str(e),
                     "success": False,
                 },
                 status_code=400,
@@ -411,10 +354,8 @@ class PermissionModule:
             if not user_id or not module_id or not permission_id:
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        **translate_pair(
-                            "message", "must_fill_all", lang=accept_language
-                        ),
+                        "success": False,
+                        "message": "All fields (user_id, module_id, permission_id) must be filled.",
                     },
                     status_code=400,
                 )
@@ -441,13 +382,10 @@ class PermissionModule:
             )
             if existing_user_permission:
                 perm_logger.warning(f"UserPermission creation failed: Duplicate Entry.")
-
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["User Permission", "already_exists"], lang=accept_language
-                        ),
+                        "success": False,
+                        "message": "User permission already exists.",
                     },
                     status_code=400,
                 )
@@ -459,11 +397,8 @@ class PermissionModule:
                 perm_logger.warning("User permission already exists.")
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["user", "permission", "already_exists"],
-                            lang=accept_language,
-                        ),
+                        "success": False,
+                        "message": "User permission already exists.",
                     },
                     status_code=400,
                 )
@@ -471,20 +406,13 @@ class PermissionModule:
             perm_logger.info("User permission added successfully.")
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["user", "permission", "added_successfully"],
-                        lang=accept_language,
-                    ),
+                    "success": True,
+                    "message": "User permission added successfully.",
                 },
                 status_code=200,
             )
         except Exception as e:
             perm_logger.error(f"Add User Permission failed: {e}")
-            return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
-                status_code=400,
-            )
 
     @staticmethod
     async def updateUserPermission(data, db, accept_language):
@@ -505,10 +433,8 @@ class PermissionModule:
                 perm_logger.warning("Missing User Permission ID")
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["user", "permission", "mandatory"], lang=accept_language
-                        ),
+                        "success": False,
+                        "message": "User permission ID is mandatory.",
                     },
                     status_code=400,
                 )
@@ -526,15 +452,14 @@ class PermissionModule:
                     "Validation failed or user permission does not exist."
                 )
                 return result
+
             recentUpdate, data2update = result
             if not recentUpdate and not data2update:
                 perm_logger.info("No changes detected in user permission.")
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate(
-                            "message", lang=accept_language
-                        ): "Nothing to change or User Permission already exists",
+                        "success": False,
+                        "message": "Nothing to change or User Permission already exists.",
                     },
                     status_code=400,
                 )
@@ -554,11 +479,8 @@ class PermissionModule:
 
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["user", "permission", "added_successfully"],
-                        lang=accept_language,
-                    ),
+                    "success": True,
+                    "message": "User permission updated successfully.",
                     "updated_fields": updated_data,
                 },
                 status_code=200,
@@ -566,10 +488,8 @@ class PermissionModule:
         except Exception as e:
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    **translate_pair(
-                        "message", f"unexpected_error {e}", lang=accept_language
-                    ),
+                    "success": False,
+                    "message": f"Unexpected error: {e}",
                 },
                 status_code=400,
             )
@@ -585,10 +505,8 @@ class PermissionModule:
                 perm_logger.warning("User Permission ID is missing in the request.")
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["user", "permission", "mandatory"], lang=accept_language
-                        ),
+                        "success": False,
+                        "message": "User permission ID is mandatory.",
                     },
                     status_code=400,
                 )
@@ -603,21 +521,16 @@ class PermissionModule:
                 )
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["user", "permission", "not_found"], lang=accept_language
-                        ),
+                        "success": False,
+                        "message": "User permission not found or failed to delete.",
                     },
                     status_code=400,
                 )
 
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["user", "permission", "deleted_successfully"],
-                        lang=accept_language,
-                    ),
+                    "success": True,
+                    "message": "User permission deleted successfully.",
                     "deleted_field": up_id,
                 },
                 status_code=200,
@@ -625,7 +538,9 @@ class PermissionModule:
         except Exception as e:
             perm_logger.error(f"Delete User Permission failed: {e}")
             return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
+                content={
+                    "message": str(e),
+                },
                 status_code=400,
             )
 
@@ -643,29 +558,23 @@ class PermissionModule:
 
             if not name:
                 return JSONResponse(
-                    content={
-                        translate(
-                            "message", lang=accept_language
-                        ): "Module name is required."
-                    },
+                    content={"message": "Module name is required."},
                     status_code=400,
                 )
+
             existing_module = (
                 db.query(Module)
-                .filter(Module.name == name, Module.is_deleted == 0)
+                .filter(Module.module_name == name, Module.is_deleted == 0)
                 .all()
             )
             if existing_module:
                 perm_logger.warning(
                     f"Module creation failed: Module '{name}' already exists."
                 )
-
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["module", "already_exists"], lang=accept_language
-                        ),
+                        "success": False,
+                        "message": "Module already exists.",
                     },
                     status_code=400,
                 )
@@ -679,12 +588,13 @@ class PermissionModule:
             else:
                 perm_logger.info(f"Module '{name}' added successfully.")
             return uploadData
+
         except Exception as e:
             perm_logger.error(f"Add Module failed: {e}")
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): str(e),
+                    "success": False,
+                    "message": str(e),
                 },
                 status_code=400,
             )
@@ -712,23 +622,19 @@ class PermissionModule:
                 perm_logger.warning(f"No module found for module_id: {module_id}")
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "true", lang=accept_language),
-                        **translate_pair(
-                            "message", "no_data_found", lang=accept_language
-                        ),
+                        "success": True,
+                        "message": "No data found.",
                     },
                     status_code=400,
                 )
 
             response = {
-                translate("message", lang=accept_language): translate_many(
-                    ["modules", "fetched"], lang=accept_language
-                ),
-                **translate_pair("success", "true", lang=accept_language),
+                "success": True,
+                "message": "Modules fetched successfully.",
                 "data": [
                     {
                         "module_id": m.id,
-                        "name": m.name,
+                        "name": m.module_name,
                         "created_by": m.created_by,
                     }
                     for m in all_modules
@@ -741,7 +647,10 @@ class PermissionModule:
         except Exception as e:
             perm_logger.error(f"Get Module failed: {str(e)}")
             return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
+                content={
+                    "success": False,
+                    "message": str(e),
+                },
                 status_code=400,
             )
 
@@ -761,11 +670,8 @@ class PermissionModule:
                 perm_logger.warning("Module ID is missing.")
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["Module ID", "mandatory"],
-                            lang=accept_language,
-                        ),
+                        "success": False,
+                        "message": "Module ID is mandatory.",
                     },
                     status_code=400,
                 )
@@ -777,7 +683,7 @@ class PermissionModule:
                 return JSONResponse(
                     content={
                         "success": False,
-                        "message": "Invalid module id. Module ID should be Integer.",
+                        "message": "Invalid module ID. Module ID should be an integer.",
                     },
                     status_code=400,
                 )
@@ -799,10 +705,8 @@ class PermissionModule:
             perm_logger.info(f"Module {module_id} updated successfully.")
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["Modules", "updated_successfully"], lang=accept_language
-                    ),
+                    "success": True,
+                    "message": "Module updated successfully.",
                     "updated_fields": updated_data,
                 },
                 status_code=201,
@@ -814,10 +718,8 @@ class PermissionModule:
                 status_code=400,
                 content={
                     "success": False,
+                    "message": "Module update failed. Cannot add duplicate module.",
                     "error": str(e),
-                    translate(
-                        "message", lang=accept_language
-                    ): "Module update failed. Cannot add duplicate module.",
                 },
             )
 
@@ -836,20 +738,19 @@ class PermissionModule:
             perm_logger.info(f"Module {module_id} deleted successfully.")
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["module", "deleted_successfully"], lang=accept_language
-                    ),
+                    "success": True,
+                    "message": "Module deleted successfully.",
                     "deleted_field": module_id,
                 },
                 status_code=200,
             )
+
         except Exception as e:
             perm_logger.error(f"Delete Module failed: {e}")
             return JSONResponse(
                 content={
                     "success": False,
-                    translate("message", lang=accept_language): str(e),
+                    "message": str(e),
                 },
                 status_code=400,
             )
@@ -867,10 +768,8 @@ class PermissionModule:
                 perm_logger.warning("Permission name is mandatory.")
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["name", "mandatory"], lang=accept_language
-                        ),
+                        "success": False,
+                        "message": "Permission name is mandatory.",
                     },
                     status_code=400,
                 )
@@ -884,16 +783,12 @@ class PermissionModule:
             )
             if existing_permission:
                 perm_logger.warning(
-                    f"existing_permission creation failed: existing_permission '{name}' already exists."
+                    f"Permission creation failed: Permission '{name}' already exists."
                 )
-
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "false", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["permission", "already_exists"],
-                            lang=accept_language,
-                        ),
+                        "success": False,
+                        "message": "Permission already exists.",
                     },
                     status_code=400,
                 )
@@ -903,10 +798,11 @@ class PermissionModule:
 
             perm_logger.info(f"Permission '{name}' added successfully.")
             return result
+
         except Exception as e:
-            perm_logger.error("Add Permission failed: ", str(e))
+            perm_logger.error(f"Add Permission failed: {str(e)}")
             return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
+                content={"message": str(e)},
                 status_code=400,
             )
 
@@ -921,13 +817,10 @@ class PermissionModule:
         try:
             if permission_id and not str(permission_id).isdigit():
                 return JSONResponse(
-                    content={
-                        translate("message", lang=accept_language): translate_many(
-                            ["digits_only", "permission", "id"], lang=accept_language
-                        )
-                    },
+                    content={"message": "Permission ID must contain digits only."},
                     status_code=400,
                 )
+
             # Call service layer to fetch permissions
             response = await Perm_Serv.getPermission_Serv(
                 permission_id, db, accept_language
@@ -939,12 +832,13 @@ class PermissionModule:
                 else "Fetched all permissions."
             )
             return response
+
         except Exception as e:
             perm_logger.error(f"Get Permission failed: {e}")
             return JSONResponse(
                 content={
                     "success": False,
-                    translate("message", lang=accept_language): str(e),
+                    "message": str(e),
                 },
                 status_code=400,
             )
@@ -999,10 +893,8 @@ class PermissionModule:
             perm_logger.info(f"Permission {permission_id} updated successfully.")
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["permission", "updated_successfully"], lang=accept_language
-                    ),
+                    "success": True,
+                    "message": "Permission updated successfully.",
                     "updated_fields": updated_data,
                 },
                 status_code=200,
@@ -1011,7 +903,7 @@ class PermissionModule:
         except Exception as e:
             perm_logger.error(f"Update Permission failed: {str(e)}")
             return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
+                content={"message": str(e)},
                 status_code=400,
             )
 
@@ -1037,26 +929,6 @@ class PermissionModule:
         except Exception as e:
             perm_logger.error(f"Delete Permission failed: {e}")
             return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
+                content={"message": str(e)},
                 status_code=400,
             )
-
-
-# FROM ADD MODULE
-# Retrieve user_id from email
-# users_details = user_databaseConnection.getUserTable(db)
-# try:
-#     createdByEmail = [
-#         data.id for data in users_details if data.email == createdByEmail
-#     ][0]
-# except IndexError:
-#     perm_logger.error(
-#         f"Creator email '{createdByEmail}' not found in user database."
-#     )
-#     return JSONResponse(
-#         content={
-#             **translate_pair("success", "false", lang=accept_language),
-#             translate("message", lang=accept_language): "User not found",
-#         },
-#         status_code=400,
-#     )

@@ -1,5 +1,5 @@
 from fastapi.responses import JSONResponse
-from model.v1.user_model import Users, PasswordResetToken
+from model.v1.user_model import User, PasswordResetToken
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
 
@@ -11,7 +11,7 @@ class user_databaseConnection:
         try:
             user_id, email, hashedPwd, username, status, created_by_email = user_data
             if role:
-                newUser = Users(
+                newUser = User(
                     id=user_id,
                     email=email,
                     pwd=hashedPwd,
@@ -21,7 +21,7 @@ class user_databaseConnection:
                     role=role,
                 )
             else:
-                newUser = Users(
+                newUser = User(
                     id=user_id,
                     email=email,
                     pwd=hashedPwd,
@@ -63,7 +63,7 @@ class user_databaseConnection:
     def getUserTable(db: Session):
         # Establishing a database connection
         try:
-            result = db.query(Users).filter(Users.is_deleted == 0).all()
+            result = db.query(User).filter(User.is_deleted == 0).all()
             return result  # Returning user data
         except Exception as e:
             return JSONResponse(
@@ -75,7 +75,7 @@ class user_databaseConnection:
     def updateUser(id, updateUser, dataList, db: Session):
         try:
             updateData = dict(zip(updateUser, dataList))
-            result = db.query(Users).filter(Users.id == id).update(updateData)
+            result = db.query(User).filter(User.id == id).update(updateData)
             db.commit()
             if result == 0:
                 return False  # No rows were updated
@@ -86,7 +86,7 @@ class user_databaseConnection:
     @staticmethod
     def deleteUserDB(id, db: Session):
         try:
-            result = db.query(Users).filter(Users.id == id).update({"is_deleted": 1})
+            result = db.query(User).filter(User.id == id).update({"is_deleted": 1})
             db.commit()
             if result == 0:
                 return False  # No user found to delete

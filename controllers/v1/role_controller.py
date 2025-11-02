@@ -1,7 +1,4 @@
 from services.v1.role_services import Role_Services
-from utils.v1.lang_utils import translate, translate_many, translate_pair
-
-# from helpers.v1.role_helpers import verifyRoleID
 from dao.v1.role_dao import Role_DBConn
 from logging.handlers import RotatingFileHandler
 from fastapi.responses import JSONResponse
@@ -35,7 +32,7 @@ class RoleController:
         except Exception as e:
             role_logger.error(f"error: {e}")
             return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
+                content={"message": str(e)},
                 status_code=400,
             )
 
@@ -53,10 +50,7 @@ class RoleController:
                 return JSONResponse(
                     content={
                         "success": "false",
-                        translate("message", lang=accept_language): translate_many(
-                            ["rolename", "is_missing"],
-                            lang=accept_language,
-                        ),
+                        "message": "Role name is missing.",
                     },
                     status_code=400,
                 )
@@ -68,20 +62,14 @@ class RoleController:
             # Check if the role already exists
             existing_roles = Role_DBConn.getRoleData(db)
             for role in existing_roles:
-                if role.rolename == rolename:
+                if role.role_name == rolename:
                     role_logger.warning(
                         f"Role creation failed: Role {rolename} already exists."
                     )
                     return JSONResponse(
                         content={
-                            **translate_pair("success", "false", lang=accept_language),
-                            **translate_pair(
-                                "message",
-                                translate_many(
-                                    ["rolename", "already_exists"],
-                                    lang=accept_language,
-                                ),
-                            ),
+                            "success": "false",
+                            "message": "Role already exists.",
                         },
                         status_code=400,
                     )
@@ -93,10 +81,8 @@ class RoleController:
                 role_logger.info(f"Role '{rolename}' Created successfully")
                 return JSONResponse(
                     content={
-                        **translate_pair("success", "true", lang=accept_language),
-                        translate("message", lang=accept_language): translate_many(
-                            ["role", "created_successfully"], lang=accept_language
-                        ),
+                        "success": "true",
+                        "message": "Role created successfully.",
                         "data": [
                             {
                                 "rolename": rolename,
@@ -114,7 +100,7 @@ class RoleController:
         except Exception as e:
             role_logger.error(f"error: {e}")
             return JSONResponse(
-                content={translate("message", lang=accept_language): str(e)},
+                content={"message": str(e)},
                 status_code=400,
             )
 
@@ -143,7 +129,7 @@ class RoleController:
             return JSONResponse(
                 content={
                     "success": False,
-                    translate("message", lang=accept_language): str(e),
+                    "message": str(e),
                 },
                 status_code=400,
             )
@@ -154,25 +140,14 @@ class RoleController:
         try:
             role_logger.info(f"deleteRole called with role_id: {role_id}")
 
-            # Verify if the role ID exists
-            # roleIDverification = await verifyRoleID(role_id, db, accept_language)
-            # if roleIDverification.status_code == 400:
-            #     role_logger.warning(
-            #         f"Invalid role_id: {role_id}"
-            #     )  # Logging warning if role_id is invalid
-            #     return roleIDverification
-
             # Perform delete operation
-
             db.query(Role).filter(Role.id == role_id).update({"is_deleted": 1})
             db.commit()
             role_logger.info(f"Role deleted successfully: {role_id}")
             return JSONResponse(
                 content={
-                    **translate_pair("success", "true", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["role", "deleted_successfully"]
-                    ),
+                    "success": "true",
+                    "message": "Role deleted successfully.",
                 },
                 status_code=200,
             )
@@ -180,10 +155,8 @@ class RoleController:
             role_logger.error(f"error: {e}")
             return JSONResponse(
                 content={
-                    **translate_pair("success", "false", lang=accept_language),
-                    translate("message", lang=accept_language): translate_many(
-                        ["role", "deletion_failed"]
-                    ),
+                    "success": "false",
+                    "message": "Role deletion failed.",
                 },
                 status_code=400,
             )
