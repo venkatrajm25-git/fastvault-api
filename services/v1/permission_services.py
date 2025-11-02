@@ -21,9 +21,7 @@ perm_logger.addHandler(log_handler)
 
 class Perm_Serv:
 
-    def updateRolePermissionService(
-        rp_id, role_id, module_id, permission_id, db, accept_language
-    ):
+    def updateRolePermissionService(rp_id, role_id, module_id, permission_id, db):
         """Update role permission details based on provided IDs."""
 
         perm_logger.info("updateRolePermissionService called with rp_id: %s", rp_id)
@@ -61,9 +59,7 @@ class Perm_Serv:
         )
         return recentUpdate, data2update
 
-    def updateUserPermissionService(
-        up_id, user_id, module_id, permission_id, db, accept_language
-    ):
+    def updateUserPermissionService(up_id, user_id, module_id, permission_id, db):
         """Update user permission details based on provided IDs."""
 
         perm_logger.info("updateUserPermissionService called with up_id: %s", up_id)
@@ -110,7 +106,7 @@ class Perm_Serv:
         )
         return recentUpdate, data2update
 
-    def getSingleUserPermission_Serv(user_id, db, accept_language):
+    def getSingleUserPermission_Serv(user_id, db):
         """Retrieve permissions associated with a single user."""
 
         perm_logger.info(
@@ -153,21 +149,8 @@ class Perm_Serv:
         )
         return (email_id, role_permission, user_permission)
 
-    def addPermission_Serv(name, created_by, db, accept_language):
+    def addPermission_Serv(name, created_by, db):
         """Add a new permission if it doesn't already exist."""
-
-        # permissions = [i.name for i in Permissions_DBConn.getPermissionData(db)]
-        # if name in permissions:
-        #     perm_logger.warning("Permission '%s' already exists.", name)
-        #     return JSONResponse(
-        #         content={
-        #             **translate_pair("success", "false", lang=accept_language),
-        #             translate("message", lang=accept_language): translate_many(
-        #                 ["permission", "already_exists"], lang=accept_language
-        #             ),
-        #         },
-        #         status_code=400,
-        #     )
 
         # Attempt to add permission to the database
         uploadData = Permissions_DBConn.addPermissionDB(name, created_by, db)
@@ -235,7 +218,7 @@ class Perm_Serv:
             status_code=200,
         )
 
-    def updatePerm_Serv(permission_id, name, modified_by, db, accept_language):
+    def updatePerm_Serv(permission_id, name, modified_by, db):
         # Update an existing permission.
 
         perm_logger.info("updatePerm_Serv called with permission_id: %s", permission_id)
@@ -334,7 +317,7 @@ class Perm_Serv:
         # If it’s some other error, just return the existing response
         return update_status
 
-    async def deletePermission_Serv(permission_id, db, accept_language):
+    async def deletePermission_Serv(permission_id, db):
         # Delete a permission based on permission_id.
 
         perm_logger.info(
@@ -380,7 +363,7 @@ class Perm_Serv:
 
 class Module_Serv:
     @staticmethod
-    def updateModule_Serv(module_id, name, modified_by, db, accept_language):
+    def updateModule_Serv(module_id, name, modified_by, db):
         """Update module details."""
 
         # Log that the update function has been called
@@ -457,7 +440,7 @@ class Module_Serv:
             return update_status
 
     @staticmethod
-    def deleteModule_Serv(module_id, db, accept_language):
+    def deleteModule_Serv(module_id, db):
         """Delete a module based on module_id."""
 
         # Log that the delete function has been called

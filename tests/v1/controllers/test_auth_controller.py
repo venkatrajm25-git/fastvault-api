@@ -4,7 +4,6 @@ from unittest.mock import patch
 from fastapi.responses import JSONResponse
 from unittest.mock import MagicMock
 import jwt
-from httpx import Auth
 from pytest import Session
 from main import app
 from starlette.status import (
@@ -14,7 +13,7 @@ from starlette.status import (
     HTTP_401_UNAUTHORIZED,
     HTTP_403_FORBIDDEN,
     HTTP_405_METHOD_NOT_ALLOWED,
-    HTTP_422_UNPROCESSABLE_ENTITY,
+    HTTP_422_UNPROCESSABLE_CONTENT,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from controllers.v1.auth_controller import Authenticator
@@ -64,7 +63,7 @@ def test_create_user_success(mock_serv, client, get_valid_token):
         },
         status_code=201,
     )
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     payload = {
         "email": "test@jeenox.com",
         "password": "Test@123",
@@ -85,7 +84,7 @@ def test_create_user_success(mock_serv, client, get_valid_token):
 
 def test_create_user_missing_email(client, get_valid_token):
     """Test user creation with missing email"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     payload = {"password": "Test@123", "username": "testuser", "status": 1, "role": 2}
     response = client.post("/v1/auth/createuser", json=payload, headers=headers)
 
@@ -96,7 +95,7 @@ def test_create_user_missing_email(client, get_valid_token):
 
 def test_create_user_missing_password(client, get_valid_token):
     """Test user creation with missing password"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     payload = {
         "email": "test@jeenox.com",
         "username": "testuser",
@@ -117,7 +116,7 @@ def test_create_user_email_already_exists(mock_serv, client, get_valid_token):
         content={"status": "false", "message": "Email ID is already registered."},
         status_code=400,
     )
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     payload = {
         "email": "test@jeenox.com",
         "password": "Test@123",
@@ -135,7 +134,7 @@ def test_create_user_email_already_exists(mock_serv, client, get_valid_token):
 @patch("controllers.v1.auth_controller.Auth_Serv.createUser_Serv")
 def test_create_user_invalid_status(mock_serv, client, get_valid_token):
     """Test user creation with invalid status"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     payload = {
         "email": "test@jeenox.com",
         "password": "Test@123",
@@ -145,7 +144,7 @@ def test_create_user_invalid_status(mock_serv, client, get_valid_token):
     }
     response = client.post("/v1/auth/createuser", json=payload, headers=headers)
 
-    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
     assert "detail" in json_data
 
@@ -156,7 +155,7 @@ def test_create_user_duplicate_entry(mock_serv, client, get_valid_token):
     mock_serv.return_value = JSONResponse(
         content={"success": False, "error": "Duplicate entry"}, status_code=400
     )
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     payload = {
         "email": "test@jeenox.com",
         "password": "Test@123",
@@ -178,7 +177,7 @@ def test_create_user_foreign_key_error(mock_serv, client, get_valid_token):
     mock_serv.return_value = JSONResponse(
         content={"success": False, "error": "Foreign key not existed."}, status_code=400
     )
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     payload = {
         "email": "test@jeenox.com",
         "password": "Test@123",
@@ -198,7 +197,7 @@ def test_create_user_foreign_key_error(mock_serv, client, get_valid_token):
 def test_create_user_unexpected_error(mock_serv, client, get_valid_token):
     """Test user creation with unexpected error"""
     mock_serv.side_effect = Exception("Unexpected error in service")
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     payload = {
         "email": "test@jeenox.com",
         "password": "Test@123",
@@ -445,7 +444,7 @@ def test_reset_password_missing_password(client):
     response = client.post(
         "/v1/auth/reseting-password", json={"newPassword": "admin@123"}
     )
-    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
 
 
 def test_reset_password_form_post_confPass(client):
@@ -473,7 +472,7 @@ def test_reset_password_success(client):
 def test_logout_success(client, get_valid_token):
     token = get_valid_token
     print("[DEBUG]Token: ", token)
-    headers = {"Authorization": f"Bearer {token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {token}"}
     response = client.post(
         "/v1/auth/logout",
         headers=headers,
@@ -495,7 +494,7 @@ def test_logout_missing_token(client):
 def test_logout_missing_email_in_token(mock_jwt_decode, client, get_valid_token):
     """Test logout with token missing email"""
     mock_jwt_decode.return_value = {}
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.post("/v1/auth/logout", headers=headers)
 
     assert response.status_code == HTTP_401_UNAUTHORIZED

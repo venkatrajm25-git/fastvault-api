@@ -13,3 +13,10 @@ class RegisterUserBaseModel(BaseModel):
 class LoginUserBaseModel(BaseModel):
     email: str
     password: str
+
+
+class UpdateUserRequest(BaseModel):
+    id: int
+    username: str
+    status: int
+    role: int

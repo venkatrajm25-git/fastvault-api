@@ -2,10 +2,8 @@ from helpers.v1.permission_helpers import (
     verifyModuleRolendPermID,
     verifyModuleUserndPermID,
 )
-
 from model.v1.module_model import Module
 from model.v1.permission_model import Permission, RolePermission, UserPermission
-
 from services.v1.permission_services import Perm_Serv, Module_Serv
 from dao.v1.perm_dao import RolePerm_DBConn, UserPerm_DBConn
 from dao.v1.user_dao import user_databaseConnection
@@ -33,7 +31,7 @@ perm_logger.addHandler(log_handler)
 
 class PermissionModule:
     @staticmethod
-    async def getRolePermission(role_id, db, accept_language):
+    async def getRolePermission(role_id, db):
         perm_logger.info("Fetching role permissions from the database.")
         try:
             data = RolePerm_DBConn.getRPData(db)
@@ -76,12 +74,12 @@ class PermissionModule:
         except Exception as e:
             perm_logger.error(f"Get Role Permission failed: {str(e)}")
             return JSONResponse(
-                content={"message": str(e)},
+                content={"success": False, "message": str(e)},
                 status_code=400,
             )
 
     @staticmethod
-    async def addRolePermission(data, db, accept_language):
+    async def addRolePermission(data, db):
         """
         Add a new role permission to the database.
         """
@@ -105,7 +103,7 @@ class PermissionModule:
             )
 
             verificationID = await verifyModuleRolendPermID(
-                role_id, module_id, permission_id, db, accept_language
+                role_id, module_id, permission_id, db
             )
             if verificationID.status_code == 400:
                 return verificationID
@@ -132,7 +130,7 @@ class PermissionModule:
                 )
 
             dataList = [role_id, module_id, permission_id]
-            uploadData = RolePerm_DBConn.addRolePerm(dataList, db, accept_language)
+            uploadData = RolePerm_DBConn.addRolePerm(dataList, db)
             if uploadData.status_code != 201:
                 perm_logger.warning("Role Permission Not Added")
             else:
@@ -142,12 +140,12 @@ class PermissionModule:
         except Exception as e:
             perm_logger.error(f"Add Role Permission failed: {e}")  # ✅ Fixed line
             return JSONResponse(
-                content={"message": str(e)},
+                content={"success": False, "message": str(e)},
                 status_code=400,
             )
 
     @staticmethod
-    async def updateRolePermission(data, db, accept_language):
+    async def updateRolePermission(data, db):
         """
         Update an existing role permission in the database.
         """
@@ -175,7 +173,7 @@ class PermissionModule:
         #         status_code=400,
         #     )
         result = Perm_Serv.updateRolePermissionService(
-            rp_id, role_id, module_id, permission_id, db, accept_language
+            rp_id, role_id, module_id, permission_id, db
         )
 
         if isinstance(result, JSONResponse):
@@ -186,7 +184,7 @@ class PermissionModule:
 
         recentUpdate, data2update = result
         uploadData = RolePerm_DBConn.updateRolePermissionDB(
-            recentUpdate, data2update, rp_id, db, accept_language
+            recentUpdate, data2update, rp_id, db
         )
 
         if not uploadData.status_code > 400:
@@ -194,7 +192,7 @@ class PermissionModule:
         return uploadData
 
     @staticmethod
-    async def deleteRolePermission(rp_id, db, accept_language):
+    async def deleteRolePermission(rp_id, db):
         """
         Delete a role permission from the database.
         """
@@ -222,7 +220,7 @@ class PermissionModule:
             )
 
     @staticmethod
-    async def getSingleUserPermission(email, user_id, db, accept_language):
+    async def getSingleUserPermission(email, user_id, db):
         """
         Retrieve a single user's permission details using either email or user_id.
         If email is provided but not user_id, fetch user_id from the database.
@@ -261,7 +259,7 @@ class PermissionModule:
         perm_logger.info(f"Fetching permission details for user_id: {user_id}")
 
         # Fetch permission details
-        result = Perm_Serv.getSingleUserPermission_Serv(user_id, db, accept_language)
+        result = Perm_Serv.getSingleUserPermission_Serv(user_id, db)
         if isinstance(result, JSONResponse):
             perm_logger.warning("Failed to fetch user permission details.")
             return result
@@ -283,7 +281,7 @@ class PermissionModule:
         return JSONResponse(content=response, status_code=200)
 
     @staticmethod
-    async def getUserPermission(user_id, db, accept_language):
+    async def getUserPermission(user_id, db):
         """
         Retrieve user permissions from the database.
         If 'user_id' is provided, return permissions specific to that user.
@@ -341,7 +339,7 @@ class PermissionModule:
             )
 
     @staticmethod
-    async def addUserPermission(data, db, accept_language):
+    async def addUserPermission(data, db):
         """
         Add a new user permission to the database.
         """
@@ -365,7 +363,7 @@ class PermissionModule:
             )
 
             verificationID = await verifyModuleUserndPermID(
-                user_id, module_id, permission_id, db, accept_language
+                user_id, module_id, permission_id, db
             )
             if verificationID.status_code == 400:
                 return verificationID
@@ -415,7 +413,7 @@ class PermissionModule:
             perm_logger.error(f"Add User Permission failed: {e}")
 
     @staticmethod
-    async def updateUserPermission(data, db, accept_language):
+    async def updateUserPermission(data, db):
         """
         Update an existing user permission in the database.
         Validates and updates fields only if changes are detected.
@@ -445,7 +443,7 @@ class PermissionModule:
 
             # Validate and check for changes
             result = Perm_Serv.updateUserPermissionService(
-                up_id, user_id, module_id, permission_id, db, accept_language
+                up_id, user_id, module_id, permission_id, db
             )
             if isinstance(result, JSONResponse):
                 perm_logger.warning(
@@ -495,7 +493,7 @@ class PermissionModule:
             )
 
     @staticmethod
-    async def deleteUserPermission(up_id, db, accept_language):
+    async def deleteUserPermission(up_id, db):
         """
         Delete a user permission from the database.
         """
@@ -545,7 +543,7 @@ class PermissionModule:
             )
 
     @staticmethod
-    async def addModule(add_module_data: dict, db, accept_language, current_user):
+    async def addModule(add_module_data: dict, db, current_user):
         """
         Add a new module to the system.
         Uses the authenticated user's email to track who created the module.
@@ -600,7 +598,7 @@ class PermissionModule:
             )
 
     @staticmethod
-    async def getModule(module_id, db, accept_language):
+    async def getModule(module_id, db):
         """
         Fetch modules:
         - If module_id is given, return that module.
@@ -655,7 +653,7 @@ class PermissionModule:
             )
 
     @staticmethod
-    async def updateModule(data, db, accept_language, current_user):
+    async def updateModule(data, db, current_user):
         """
         Update an existing module.
         - Requires module_id and modified_by.
@@ -693,7 +691,7 @@ class PermissionModule:
 
             # Update module via service
             updated_data = Module_Serv.updateModule_Serv(
-                module_id, name, modified_by, db, accept_language
+                module_id, name, modified_by, db
             )
 
             if isinstance(updated_data, JSONResponse):
@@ -724,14 +722,14 @@ class PermissionModule:
             )
 
     @staticmethod
-    async def deleteModule(module_id, db, accept_language):
+    async def deleteModule(module_id, db):
         """
         Delete a module by module_id.
         """
         perm_logger.info("Received request to delete module.")
         try:
             # Call service layer to delete module
-            deleteStatus = Module_Serv.deleteModule_Serv(module_id, db, accept_language)
+            deleteStatus = Module_Serv.deleteModule_Serv(module_id, db)
             if isinstance(deleteStatus, JSONResponse):
                 return deleteStatus
 
@@ -756,7 +754,7 @@ class PermissionModule:
             )
 
     @staticmethod
-    async def addPermission(add_perm_data: dict, db, accept_language):
+    async def addPermission(add_perm_data: dict, db):
         """
         Add a new permission.
         - Requires 'name' in request form.
@@ -794,7 +792,7 @@ class PermissionModule:
                 )
 
             # Call service layer to add permission
-            result = Perm_Serv.addPermission_Serv(name, created_by, db, accept_language)
+            result = Perm_Serv.addPermission_Serv(name, created_by, db)
 
             perm_logger.info(f"Permission '{name}' added successfully.")
             return result
@@ -807,7 +805,7 @@ class PermissionModule:
             )
 
     @staticmethod
-    async def getPermission(permission_id, db, accept_language):
+    async def getPermission(permission_id, db):
         """
         Retrieve permission details.
         - If permission_id is provided, return specific permission details.
@@ -822,9 +820,7 @@ class PermissionModule:
                 )
 
             # Call service layer to fetch permissions
-            response = await Perm_Serv.getPermission_Serv(
-                permission_id, db, accept_language
-            )
+            response = await Perm_Serv.getPermission_Serv(permission_id, db)
 
             perm_logger.info(
                 f"Fetched permission details for permission_id: {permission_id}"
@@ -844,7 +840,7 @@ class PermissionModule:
             )
 
     @staticmethod
-    async def updatePermission(data, db, accept_language, current_user):
+    async def updatePermission(data, db, current_user):
         """
         Update an existing permission.
         - Requires valid permission_id.
@@ -881,7 +877,7 @@ class PermissionModule:
 
             # Call service layer
             updated_data = Perm_Serv.updatePerm_Serv(
-                permission_id, name, modified_by, db, accept_language
+                permission_id, name, modified_by, db
             )
 
             if isinstance(updated_data, JSONResponse):
@@ -908,16 +904,14 @@ class PermissionModule:
             )
 
     @staticmethod
-    async def deletePermission(permission_id, db, accept_language):
+    async def deletePermission(permission_id, db):
         """
         Delete a permission by permission_id.
         """
         perm_logger.info("Received request to delete permission.")
         try:
             # Call service layer to delete permission
-            result = await Perm_Serv.deletePermission_Serv(
-                permission_id, db, accept_language
-            )
+            result = await Perm_Serv.deletePermission_Serv(permission_id, db)
             if result.status_code == 400:
                 perm_logger.error(
                     f"Failed to delete permission {permission_id}. Reason: {result}"

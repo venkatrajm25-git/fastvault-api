@@ -18,7 +18,7 @@ logger.addHandler(log_handler)
 
 class user_services:
     @staticmethod
-    async def getAlluser_serv(userID, db: Session, accept_language):
+    async def getAlluser_serv(userID, db: Session):
         """
         Retrieve all users or a specific user by userID.
         """
@@ -58,7 +58,7 @@ class user_services:
             )
 
         # Verify if the provided userID is valid
-        # verification = await verifyID(userID, db, accept_language)
+        # verification = await verifyID(userID, db)
         # if verification.status_code == 400:
         #     logger.warning(f"User verification failed for ID: {userID}")
         #     return verification
@@ -98,7 +98,7 @@ class user_services:
             )
 
     @staticmethod
-    async def updateUser_serv(dataList, db, accept_language):
+    async def updateUser_serv(dataList, db):
         """
         Update user details.
         """

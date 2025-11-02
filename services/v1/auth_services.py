@@ -1,4 +1,3 @@
-from urllib import response
 from dao.v1.auth_dao import AuthDAO
 from fastapi.responses import JSONResponse
 from utils.v1.auth_utils import hash_password, verify_password

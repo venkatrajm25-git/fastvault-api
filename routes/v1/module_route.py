@@ -19,13 +19,10 @@ async def add_module(
     request: Request,
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
     data = await request.json()
     add_module_data = {"name": data.get("name"), "user": current_user}
-    return await PermissionModule.addModule(
-        add_module_data, db, accept_language, current_user
-    )
+    return await PermissionModule.addModule(add_module_data, db, current_user)
 
 
 @router.get("/getmodule")
@@ -33,9 +30,8 @@ async def get_module(
     module_id: int = Query(None),
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
-    return await PermissionModule.getModule(module_id, db, accept_language)
+    return await PermissionModule.getModule(module_id, db)
 
 
 @router.patch("/updatemodule")
@@ -49,10 +45,9 @@ async def update_module(
     request: Request,
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
     data = getattr(request, "_json", None) or await request.json()
-    return await PermissionModule.updateModule(data, db, accept_language, current_user)
+    return await PermissionModule.updateModule(data, db, current_user)
 
 
 @router.delete("/deletemodule")
@@ -66,6 +61,5 @@ async def delete_module(
     module_id: int = Query(...),
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
-    return await PermissionModule.deleteModule(module_id, db, accept_language)
+    return await PermissionModule.deleteModule(module_id, db)

@@ -1,21 +1,17 @@
-from os import name
 from unittest.mock import patch
-from urllib import response
-
-from sympy import O
 from dao.v1.perm_dao import Permissions_DBConn
 from fastapi.responses import JSONResponse
 
 # from helpers.v1.helpers import deletePermission
 import json
-from model.v1.perm_model import Permission
+from model.v1.permission_model import Permission
 from starlette.status import (
     HTTP_200_OK,
     HTTP_400_BAD_REQUEST,
-    HTTP_422_UNPROCESSABLE_ENTITY,
     HTTP_201_CREATED,
     HTTP_403_FORBIDDEN,
     HTTP_500_INTERNAL_SERVER_ERROR,
+    HTTP_422_UNPROCESSABLE_CONTENT,
 )
 
 from tests.v1.conftest import get_or_create_by_name
@@ -28,7 +24,7 @@ def test_get_permission_invalid_id_format(client, get_valid_token):
     headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
     response = client.get("/v1/perm/getpermission?permission_id=id", headers=headers)
 
-    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
     assert "detail" in json_data
 
@@ -543,7 +539,7 @@ def test_delete_permission_missing_id(client, get_valid_token):
         "/v1/perm/deletepermission?permission_id=", headers=headers
     )
 
-    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
     assert "detail" in json_data
 
@@ -555,7 +551,7 @@ def test_delete_permission_invalid_id_format(client, get_valid_token):
         "/v1/perm/deletepermission?permission_id=abc", headers=headers
     )
 
-    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
     assert "detail" in json_data
 

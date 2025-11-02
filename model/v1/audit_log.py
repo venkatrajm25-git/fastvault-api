@@ -10,7 +10,15 @@ class AuditLog(Base):
     table_name = Column(String(100), nullable=False)
     record_id = Column(Integer)
     action = Column(
-        Enum("LOGIN", "LOGOUT", "CHANGE_PASSWORD", "CREATE", "UPDATE", "DELETE"),
+        Enum(
+            "LOGIN",
+            "LOGOUT",
+            "CHANGE_PASSWORD",
+            "CREATE",
+            "UPDATE",
+            "DELETE",
+            name="action_enum",  # 👈 important for PostgreSQL
+        ),
         nullable=False,
     )
     changed_fields = Column(JSON)

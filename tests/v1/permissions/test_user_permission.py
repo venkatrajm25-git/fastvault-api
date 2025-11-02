@@ -7,13 +7,13 @@ from dao.v1.perm_dao import UserPerm_DBConn
 from fastapi.responses import JSONResponse
 from helpers.v1.permission_helpers import verifyModuleUserndPermID
 from main import app
-from model.v1.perm_model import UserPermission
+from model.v1.permission_model import UserPermission
 from sqlalchemy import and_
 from starlette.status import (
     HTTP_200_OK,
     HTTP_400_BAD_REQUEST,
     HTTP_403_FORBIDDEN,
-    HTTP_422_UNPROCESSABLE_ENTITY,
+    HTTP_422_UNPROCESSABLE_CONTENT,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 
@@ -656,7 +656,7 @@ def test_delete_user_perm_verify_id(client, get_valid_token):
     headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
     response = client.delete("/v1/perm/deleteuserpermission?up_id=", headers=headers)
 
-    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
     assert "detail" in json_data
 
@@ -669,7 +669,7 @@ def test_delete_user_perm_invalid_id_format(client, get_valid_token):
         "/v1/perm/deleteuserpermission?up_id=invalid", headers=headers
     )
 
-    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
     assert "detail" in json_data
 

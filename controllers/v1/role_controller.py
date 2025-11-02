@@ -21,13 +21,13 @@ role_logger.addHandler(log_handler)
 
 class RoleController:
     @staticmethod
-    async def getRole(role_id, db, accept_language):
+    async def getRole(role_id, db):
         """Retrieves details of a specific role based on role ID."""
         try:
             role_logger.info(f"Fetching role details: RoleID={role_id}")
 
             # Call service layer to fetch role details
-            result = await Role_Services.getRole_serv(role_id, db, accept_language)
+            result = await Role_Services.getRole_serv(role_id, db)
             return result
         except Exception as e:
             role_logger.error(f"error: {e}")
@@ -37,7 +37,7 @@ class RoleController:
             )
 
     @staticmethod
-    def addrole(data, db, accept_language, current_user):
+    def addrole(data, db, current_user):
         """Adds a new role to the system."""
         try:
             rolename = data.get("rolename").strip()  # Get and clean role name
@@ -49,7 +49,7 @@ class RoleController:
             if not rolename:
                 return JSONResponse(
                     content={
-                        "success": "false",
+                        "success": False,
                         "message": "Role name is missing.",
                     },
                     status_code=400,
@@ -68,7 +68,7 @@ class RoleController:
                     )
                     return JSONResponse(
                         content={
-                            "success": "false",
+                            "success": False,
                             "message": "Role already exists.",
                         },
                         status_code=400,
@@ -81,7 +81,7 @@ class RoleController:
                 role_logger.info(f"Role '{rolename}' Created successfully")
                 return JSONResponse(
                     content={
-                        "success": "true",
+                        "success": True,
                         "message": "Role created successfully.",
                         "data": [
                             {
@@ -105,7 +105,7 @@ class RoleController:
             )
 
     @staticmethod
-    async def updateRole(data, db, accept_language, current_user):
+    async def updateRole(data, db, current_user):
         """Updates an existing role in the system."""
         try:
             role_logger.info(f"updateRole called with data: {data}")
@@ -122,7 +122,7 @@ class RoleController:
             dataList = [role_id, rolename, status, modified_by]
 
             # Call service layer to update role
-            result = await Role_Services.updateRole_serv(dataList, db, accept_language)
+            result = await Role_Services.updateRole_serv(dataList, db)
             return result
         except Exception as e:
             role_logger.error(f"error: {e}")
@@ -135,7 +135,7 @@ class RoleController:
             )
 
     @staticmethod
-    async def deleteRole(role_id, db: Session, accept_language):
+    async def deleteRole(role_id, db: Session):
         """Deletes an existing role from the system."""
         try:
             role_logger.info(f"deleteRole called with role_id: {role_id}")
@@ -146,7 +146,7 @@ class RoleController:
             role_logger.info(f"Role deleted successfully: {role_id}")
             return JSONResponse(
                 content={
-                    "success": "true",
+                    "success": True,
                     "message": "Role deleted successfully.",
                 },
                 status_code=200,
@@ -155,7 +155,7 @@ class RoleController:
             role_logger.error(f"error: {e}")
             return JSONResponse(
                 content={
-                    "success": "false",
+                    "success": False,
                     "message": "Role deletion failed.",
                 },
                 status_code=400,

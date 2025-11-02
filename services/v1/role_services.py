@@ -17,7 +17,7 @@ logger.addHandler(log_handler)
 
 class Role_Services:
     @staticmethod
-    async def getRole_serv(role_id, db, accept_language):
+    async def getRole_serv(role_id, db):
         """Fetches role details based on role_id. Returns all roles if role_id is not provided."""
 
         def format_role_data(rows):
@@ -63,7 +63,7 @@ class Role_Services:
     # Returning success status and JSON response
 
     @staticmethod
-    async def updateRole_serv(dataList, db, accept_language):
+    async def updateRole_serv(dataList, db):
         """Updates role details including rolename, status, and modified_by."""
         role_id, rolename, status, modified_by = dataList
         logger.info(f"Updating role details for role_id: {role_id}")
