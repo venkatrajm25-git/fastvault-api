@@ -1,4 +1,3 @@
-from huggingface_hub import User
 import pytest
 import json
 import sqlalchemy.orm
@@ -6,7 +5,7 @@ import sqlalchemy.orm
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 from sqlalchemy.exc import IntegrityError
-from model.v1.user_model import Users  # Adjust import as needed
+from model.v1.user_model import User  # Adjust import as needed
 from dao.v1.user_dao import user_databaseConnection
 
 
@@ -36,14 +35,14 @@ def test_register_user_details_success_with_role(db_session: Session):
     assert response_data["message"] == "User Created Successfully."
 
     # Verify record in DB
-    user = db_session.query(Users).filter(Users.id == 999).first()
+    user = db_session.query(User).filter(User.id == 999).first()
     assert user is not None
     assert user.email == "test@example.com"
     assert user.username == "TestUser"
     assert user.role == 1
 
     # Cleanup
-    db_session.query(Users).filter(Users.id == 999).delete()
+    db_session.query(User).filter(User.id == 999).delete()
     db_session.commit()
 
 
@@ -70,20 +69,20 @@ def test_register_user_details_success_without_role(db_session: Session):
     assert response_data["message"] == "User Created Successfully."
 
     # Verify record in DB
-    user = db_session.query(Users).filter(Users.id == 999).first()
+    user = db_session.query(User).filter(User.id == 999).first()
     assert user is not None
     assert user.email == "test2@example.com"
     assert user.username == "TestUser2"
     assert user.role is None
 
     # Cleanup
-    db_session.query(Users).filter(Users.id == 999).delete()
+    db_session.query(User).filter(User.id == 999).delete()
     db_session.commit()
 
 
 def test_register_user_details_duplicate_entry(db_session: Session):
     # Arrange: Insert a user first to trigger duplicate error
-    test_user = Users(
+    test_user = User(
         id=999,
         email="duplicate@example.com",
         pwd="hashed_password",
@@ -116,7 +115,7 @@ def test_register_user_details_duplicate_entry(db_session: Session):
     assert response_data["error"] == "Duplicate entry"
 
     # Cleanup
-    db_session.query(Users).filter(Users.id == 999).delete()
+    db_session.query(User).filter(User.id == 999).delete()
     db_session.commit()
 
 
@@ -176,9 +175,9 @@ def test_register_user_details_general_exception(db_session: Session):
 # * GET USER TABLE STARTED
 def test_get_user_table_success(db_session: Session):
     # Arrange: Insert a test user if none exist
-    data = db_session.query(Users).filter(Users.is_deleted == 0).first()
+    data = db_session.query(User).filter(User.is_deleted == 0).first()
     if not data:
-        test_user = Users(
+        test_user = User(
             id=999,
             email="test6@example.com",
             pwd="hashed_password",
@@ -200,23 +199,8 @@ def test_get_user_table_success(db_session: Session):
 
     # Cleanup
     if not data:  # Only clean up if we inserted a test user
-        db_session.query(Users).filter(Users.id == 999).delete()
+        db_session.query(User).filter(User.id == 999).delete()
         db_session.commit()
-
-
-# def test_get_user_table_empty(db_session: Session):
-#     # Arrange: Ensure no non-deleted users exist
-#     db_session.query(Users).filter(Users.is_deleted == 0).delete()
-#     db_session.commit()
-
-#     # Act
-#     result = user_databaseConnection.getUserTable(db_session)
-
-#     # Assert
-#     assert isinstance(result, list), "Result should be a list"
-#     assert len(result) == 0, "Result should be empty"
-
-#     # Cleanup: None needed
 
 
 def test_get_user_table_exception(db_session: Session, monkeypatch):
@@ -244,11 +228,9 @@ def test_get_user_table_exception(db_session: Session, monkeypatch):
 
 # * UPDATE USER STARTED
 def test_update_user_success(db_session: Session):
-    data = (
-        db_session.query(Users).filter(Users.id == 999, Users.is_deleted == 0).first()
-    )
+    data = db_session.query(User).filter(User.id == 999, User.is_deleted == 0).first()
     if not data:
-        test_user = Users(
+        test_user = User(
             id=999,
             email="test6@example.com",
             pwd="hashed_password",
@@ -273,13 +255,13 @@ def test_update_user_success(db_session: Session):
     assert result is True, "Update should return True"
 
     # Verify updated record in DB
-    updated_user = db_session.query(Users).filter(Users.id == test_user.id).first()
+    updated_user = db_session.query(User).filter(User.id == test_user.id).first()
     assert updated_user is not None
     assert updated_user.username == "UpdatedUser7"
     assert updated_user.status == 2
 
     # Cleanup
-    db_session.query(Users).filter(Users.id == test_user.id).delete()
+    db_session.query(User).filter(User.id == test_user.id).delete()
     db_session.commit()
 
 
@@ -302,9 +284,9 @@ def test_update_user_non_existent(db_session: Session):
 
 def test_update_user_exception(db_session: Session):
     # Arrange: Insert a test user
-    data = db_session.query(Users).filter(Users.id == 999).first()
+    data = db_session.query(User).filter(User.id == 999).first()
     if not data:
-        test_user = Users(
+        test_user = User(
             id=999,
             email="test8@example.com",
             pwd="hashed_password",
@@ -329,7 +311,7 @@ def test_update_user_exception(db_session: Session):
     assert result is False, "Update with invalid data should return False"
 
     # Cleanup
-    db_session.query(Users).filter(Users.id == test_user.id).delete()
+    db_session.query(User).filter(User.id == test_user.id).delete()
     db_session.commit()
 
 
@@ -338,9 +320,9 @@ def test_update_user_exception(db_session: Session):
 
 # * DELETE USER STARTED
 def test_delete_user_success(db_session: Session):
-    data = db_session.query(Users).filter(Users.id == 999).first()
+    data = db_session.query(User).filter(User.id == 999).first()
     if not data:
-        test_user = Users(
+        test_user = User(
             id=999,
             email="test8@example.com",
             pwd="hashed_password",
@@ -361,12 +343,12 @@ def test_delete_user_success(db_session: Session):
     assert result is True, "Delete should return True"
 
     # Verify user is soft-deleted
-    deleted_user = db_session.query(Users).filter(Users.id == test_user.id).first()
+    deleted_user = db_session.query(User).filter(User.id == test_user.id).first()
     assert deleted_user is not None
     assert deleted_user.is_deleted == 1
 
     # Cleanup
-    db_session.query(Users).filter(Users.id == test_user.id).delete()
+    db_session.query(User).filter(User.id == test_user.id).delete()
     db_session.commit()
 
 

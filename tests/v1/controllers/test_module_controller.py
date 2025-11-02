@@ -6,7 +6,7 @@ from model.v1.module_model import Module
 from starlette.status import (
     HTTP_200_OK,
     HTTP_400_BAD_REQUEST,
-    HTTP_422_UNPROCESSABLE_ENTITY,
+    HTTP_422_UNPROCESSABLE_CONTENT,
     HTTP_201_CREATED,
     HTTP_403_FORBIDDEN,
 )
@@ -19,10 +19,10 @@ from sqlalchemy.exc import IntegrityError
 # UNIT TEST STARTED
 def test_get_module_invalid_id_format(client, get_valid_token):
     """Test fetching a module with non-digit module_id"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.get("/v1/module/getmodule?module_id=abc", headers=headers)
 
-    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
     assert "detail" in json_data
 
@@ -34,7 +34,7 @@ def test_get_all_modules(client, get_valid_token, db_session):
         db_session.add(Module(name="TestModule"))
         db_session.commit()
 
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.get("/v1/module/getmodule", headers=headers)
 
     assert response.status_code == HTTP_200_OK
@@ -53,7 +53,7 @@ def test_get_single_module(client, get_valid_token, db_session):
         db_session.add(Module(id=1, name="TestModule"))
         db_session.commit()
 
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.get("/v1/module/getmodule?module_id=2", headers=headers)
 
     assert response.status_code == HTTP_200_OK
@@ -73,7 +73,7 @@ def test_get_module_non_existent_id(mock_get_module, client, get_valid_token):
     # Setup mock to simulate "not found" response
     mock_get_module.return_value = []
 
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
 
     response = client.get("/v1/module/getmodule?module_id=999", headers=headers)
 
@@ -88,7 +88,7 @@ def test_get_module_non_existent_id(mock_get_module, client, get_valid_token):
 
 def test_get_module_database_error(client, get_valid_token):
     """Test fetching a module with database error"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
 
     with patch(
         "controllers.v1.perm_controller.Module_DBConn.getModuleData",
@@ -109,7 +109,7 @@ def test_get_module_different_language(client, get_valid_token, db_session):
     dummyModule = get_or_create_by_name(db_session, Module, name_value="OldModule")
     id = dummyModule.id
 
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "es"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.get(f"/v1/module/getmodule?module_id={id}", headers=headers)
 
     assert response.status_code == HTTP_200_OK
@@ -144,7 +144,7 @@ def test_get_module_invalid_token(client):
 
 def test_add_module_missing_name(client, get_valid_token):
     """Test adding a module without providing a name"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.post("/v1/module/addmodule", json={}, headers=headers)
 
     assert response.status_code == HTTP_400_BAD_REQUEST
@@ -160,7 +160,7 @@ def test_add_module_already_exists(client, get_valid_token, db_session):
     )
     module_name = "TestModule"
 
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.post(
         "/v1/module/addmodule", json={"name": module_name}, headers=headers
     )
@@ -181,7 +181,7 @@ def test_add_module_already_exists(client, get_valid_token, db_session):
 def test_add_module_success(client, get_valid_token, db_session):
     """Test successful addition of a module via API"""
     module_name = "NewModule"
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
 
     # Ensure no duplicate module exists
     db_session.query(Module).filter(Module.name == module_name).delete()
@@ -213,7 +213,7 @@ def test_add_module_success(client, get_valid_token, db_session):
 def test_add_module_invalid_created_by(client, get_valid_token, db_session):
     """Test adding a module with invalid createdByEmail (foreign key failure)"""
     module_name = "InvalidModule"
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
 
     with patch(
         "controllers.v1.perm_controller.Module_DBConn.addModDB",
@@ -241,7 +241,7 @@ def test_add_module_invalid_created_by(client, get_valid_token, db_session):
 def test_add_module_database_error(client, get_valid_token, db_session):
     """Test adding a module with general database error"""
     module_name = "ErrorModule"
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
 
     with patch(
         "controllers.v1.perm_controller.Module_DBConn.addModDB",
@@ -269,7 +269,7 @@ def test_add_module_database_error(client, get_valid_token, db_session):
 def test_add_module_different_language(client, get_valid_token, db_session):
     """Test adding a module with different Accept-Language header"""
     module_name = "LangModule"
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "es"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
 
     # Ensure no duplicate module exists
     db_session.query(Module).filter(Module.name == module_name).delete()
@@ -353,7 +353,7 @@ def test_add_module_unexpected_error(
     mock_verify_module_role_perm_id, client, get_valid_token
 ):
     mock_verify_module_role_perm_id.side_effect = Exception("unexpected error")
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     payload = {"name": "NoAuthModule"}
     response = client.post("/v1/module/addmodule", json=payload, headers=headers)
     assert response.status_code == HTTP_400_BAD_REQUEST
@@ -370,7 +370,7 @@ def test_add_module_unexpected_error(
 # Fixed test cases
 def test_update_module_missing_module_id(client, get_valid_token):
     """Test updating a module without module_id"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.patch(
         "/v1/module/updatemodule", json={"name": "UpdatedModule"}, headers=headers
     )
@@ -385,7 +385,7 @@ def test_update_module_missing_module_id(client, get_valid_token):
 
 def test_update_module_non_existent_id(client, get_valid_token, db_session):
     """Test updating a module with non-existent module_id"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.patch(
         "/v1/module/updatemodule",
         json={"module_id": "999", "name": "NewModule"},
@@ -415,7 +415,7 @@ def test_update_module_duplicate_name(mock_update, client, get_valid_token, db_s
         content={"success": False, "error": "Duplicate entry"}, status_code=400
     )
 
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.patch(
         "/v1/module/updatemodule",
         json={"module_id": id, "name": "TestModule"},
@@ -446,7 +446,7 @@ def test_update_module_success(client, get_valid_token, db_session):
 
     id = dummy_module.id
 
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.patch(
         "/v1/module/updatemodule",
         json={"module_id": id, "name": "UpdatedModule"},
@@ -468,7 +468,7 @@ def test_update_module_success(client, get_valid_token, db_session):
 # Additional test cases
 def test_update_module_invalid_id_format(client, get_valid_token):
     """Test updating a module with non-integer module_id"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.patch(
         "/v1/module/updatemodule",
         json={"module_id": "invalid", "name": "NewModule"},
@@ -561,7 +561,6 @@ def test_update_module_database_error(client, get_valid_token, db_session):
     ):
         headers = {
             "Authorization": f"Bearer {get_valid_token}",
-            "Accept-Language": "en",
         }
         response = client.patch(
             "/v1/module/updatemodule",
@@ -587,7 +586,7 @@ def test_update_module_different_language(client, get_valid_token, db_session):
     dummyModule = get_or_create_by_name(db_session, Module, name_value="OldModule")
     id = dummyModule.id
 
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "es"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.patch(
         "/v1/module/updatemodule",
         json={"module_id": id, "name": "UpdatedModule"},
@@ -625,7 +624,7 @@ def test_update_module_unexpected_error(
 ):
     """Test update module with unexpected error"""
     mock_verify_module_role_perm_id.side_effect = Exception("unexpected error")
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     payload = {"module_id": 1, "name": "UpdatedModule"}
     response = client.patch("/v1/module/updatemodule", json=payload, headers=headers)
     assert response.status_code == HTTP_400_BAD_REQUEST
@@ -658,18 +657,18 @@ def test_delete_module_exception():
 
 def test_delete_module_missing_id(client, get_valid_token):
     """Test deleting a module without module_id"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.delete("/v1/module/deletemodule?module_id=", headers=headers)
 
-    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
 
 
 def test_delete_module_invalid_id_format(client, get_valid_token):
     """Test deleting a module with non-digit module_id"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.delete("/v1/module/deletemodule?module_id=abc", headers=headers)
 
-    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
 
 
 def test_delete_module_non_existent_id(client, get_valid_token, db_session):
@@ -678,7 +677,7 @@ def test_delete_module_non_existent_id(client, get_valid_token, db_session):
     db_session.query(Module).filter(Module.id == 150).delete()
     db_session.commit()
 
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.delete("/v1/module/deletemodule?module_id=150", headers=headers)
 
     assert response.status_code == HTTP_400_BAD_REQUEST
@@ -696,7 +695,7 @@ def test_delete_module_success(client, get_valid_token, db_session):
     dummyModule = get_or_create_by_name(db_session, Module, name_value="OldModule")
     id = dummyModule.id
     print("id", id)
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.delete(f"/v1/module/deletemodule?module_id={id}", headers=headers)
     print(response.text)
     assert response.status_code == HTTP_200_OK
@@ -745,7 +744,7 @@ def test_delete_module_different_language(client, get_valid_token, db_session):
     # Setup test data
     dummyModule = get_or_create_by_name(db_session, Module, name_value="OldModule")
     id = dummyModule.id
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "es"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.delete(f"/v1/module/deletemodule?module_id={id}", headers=headers)
 
     assert response.status_code == HTTP_200_OK
@@ -775,7 +774,7 @@ def test_delete_module_unexpected_error(
     mock_verify_module_role_perm_id, client, get_valid_token
 ):
     mock_verify_module_role_perm_id.side_effect = Exception("unexpected error")
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    headers = {"Authorization": f"Bearer {get_valid_token}"}
     response = client.delete("/v1/module/deletemodule?module_id=10", headers=headers)
     assert response.status_code == HTTP_400_BAD_REQUEST
 

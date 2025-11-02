@@ -4,8 +4,8 @@ from fastapi.responses import JSONResponse
 from http import HTTPStatus
 import json
 from helpers.v1.helpers import IDGeneration
-from services.v1.auth_services import Auth_Serv  # Adjust import path
-from model.v1.user_model import Users  # Adjust import
+from services.v1.auth_services import AuthServices  # Adjust import path
+from model.v1.user_model import User  # Adjust import
 
 
 @pytest.fixture
@@ -32,10 +32,11 @@ async def _test_create_user_success(mock_db_session):  # 👈 move logic to asyn
     mock_db_session.query().filter().first.return_value = None
 
     # Mock IDGeneration.userID
-    with patch("services.v1.auth_services.IDGeneration.userID", return_value="22"):
+    with patch("services.v1.AuthServicesices.IDGeneration.userID", return_value="22"):
         # Mock bcrypt.hashpw
         with patch(
-            "services.v1.auth_services.bcrypt.hashpw", return_value=b"hashed_password"
+            "services.v1.AuthServicesices.bcrypt.hashpw",
+            return_value=b"hashed_password",
         ):
             # Mock user_databaseConnection.registerUserDetails
             mock_response = JSONResponse(
@@ -43,7 +44,7 @@ async def _test_create_user_success(mock_db_session):  # 👈 move logic to asyn
             )
 
             # Act
-            response = await Auth_Serv.createUser_Serv(
+            response = await AuthServices.register_serv(
                 data_list, mock_db_session, accept_language, current_user
             )
 
@@ -71,13 +72,14 @@ def test_create_user_duplicate_email(mock_db_session):
     mock_db_session.query().filter().first.return_value = mock_user
 
     with patch(
-        "services.v1.auth_services.translate_pair", return_value={"status": "false"}
+        "services.v1.AuthServicesices.translate_pair", return_value={"status": "false"}
     ), patch(
-        "services.v1.auth_services.translate_many", return_value="Email already exists"
+        "services.v1.AuthServicesices.translate_many",
+        return_value="Email already exists",
     ):
 
         response = asyncio.run(
-            Auth_Serv.createUser_Serv(
+            AuthServices.register_serv(
                 data_list, mock_db_session, accept_language, current_user
             )
         )
@@ -97,16 +99,16 @@ def test_create_user_database_failure(mock_db_session):
     mock_db_session.query().filter().first.return_value = None
 
     with patch(
-        "services.v1.auth_services.IDGeneration.userID", return_value="22"
+        "services.v1.AuthServicesices.IDGeneration.userID", return_value="22"
     ), patch(
-        "services.v1.auth_services.bcrypt.hashpw", return_value=b"hashed_password"
+        "services.v1.AuthServicesices.bcrypt.hashpw", return_value=b"hashed_password"
     ), patch(
-        "services.v1.auth_services.user_databaseConnection.registerUserDetails",
+        "services.v1.AuthServicesices.user_databaseConnection.registerUserDetails",
         return_value=JSONResponse(content={"error": "Database error"}, status_code=400),
     ):
 
         response = asyncio.run(
-            Auth_Serv.createUser_Serv(
+            AuthServices.register_serv(
                 data_list, mock_db_session, accept_language, current_user
             )
         )
@@ -125,12 +127,12 @@ def test_create_user_general_exception(mock_db_session):
     mock_db_session.query().filter().first.side_effect = Exception("Unexpected error")
 
     with patch(
-        "services.v1.auth_services.translate",
+        "services.v1.AuthServicesices.translate",
         return_value="An internal error occurred. Please try again later.",
     ):
 
         response = asyncio.run(
-            Auth_Serv.createUser_Serv(
+            AuthServices.register_serv(
                 data_list, mock_db_session, accept_language, current_user
             )
         )
@@ -163,33 +165,33 @@ def test_login_success(mock_db_session, mock_request):
     # Mock user query
     mock_user = MagicMock()
     mock_user.id = "user_123"
-    mock_user.pwd = "hashed_password"
+    mock_user.password = "hashed_password"
     mock_db_session.query().filter().first.return_value = mock_user
 
     # Mock dependencies
     with patch(
-        "services.v1.auth_services.Auth_DatabaseConnection.verifyActiveStatus",
+        "services.v1.AuthServicesices.Auth_DatabaseConnection.verifyActiveStatus",
         return_value=1,
     ):
-        with patch("services.v1.auth_services.bcrypt.checkpw", return_value=True):
+        with patch("services.v1.AuthServicesices.bcrypt.checkpw", return_value=True):
             with patch(
-                "services.v1.auth_services.create_access_token",
+                "services.v1.AuthServicesices.create_access_token",
                 return_value="access_token_123",
             ):
                 with patch(
-                    "services.v1.auth_services.create_refresh_token",
+                    "services.v1.AuthServicesices.create_refresh_token",
                     return_value="refresh_token_123",
                 ):
                     with patch(
-                        "services.v1.auth_services.log_audit", return_value=None
+                        "services.v1.AuthServicesices.log_audit", return_value=None
                     ):
                         with patch(
-                            "services.v1.auth_services.Auth_DatabaseConnection.updateAccessToken",
+                            "services.v1.AuthServicesices.Auth_DatabaseConnection.updateAccessToken",
                             return_value=None,
                         ):
                             # Act
                             response = asyncio.run(
-                                Auth_Serv.login_Serv(
+                                AuthServices.login_serv(
                                     email,
                                     password,
                                     mock_db_session,
@@ -219,7 +221,7 @@ def test_login_user_not_found(mock_db_session, mock_request):
 
     # Act
     response = asyncio.run(
-        Auth_Serv.login_Serv(
+        AuthServices.login_serv(
             email, password, mock_db_session, accept_language, mock_request
         )
     )
@@ -242,17 +244,17 @@ def test_login_inactive_role(mock_db_session, mock_request):
     # Mock user query
     mock_user = MagicMock()
     mock_user.id = "user_123"
-    mock_user.pwd = "hashed_password"
+    mock_user.password = "hashed_password"
     mock_db_session.query().filter().first.return_value = mock_user
 
     # Mock verifyActiveStatus to return inactive status (2)
     with patch(
-        "services.v1.auth_services.Auth_DatabaseConnection.verifyActiveStatus",
+        "services.v1.AuthServicesices.Auth_DatabaseConnection.verifyActiveStatus",
         return_value=2,
     ):
         # Act
         response = asyncio.run(
-            Auth_Serv.login_Serv(
+            AuthServices.login_serv(
                 email, password, mock_db_session, accept_language, mock_request
             )
         )
@@ -274,19 +276,19 @@ def test_login_incorrect_password(mock_db_session, mock_request):
     # Mock user query
     mock_user = MagicMock()
     mock_user.id = "user_123"
-    mock_user.pwd = "hashed_password"
+    mock_user.password = "hashed_password"
     mock_db_session.query().filter().first.return_value = mock_user
 
     # Mock verifyActiveStatus
     with patch(
-        "services.v1.auth_services.Auth_DatabaseConnection.verifyActiveStatus",
+        "services.v1.AuthServicesices.Auth_DatabaseConnection.verifyActiveStatus",
         return_value=1,
     ):
         # Mock bcrypt.checkpw to return False
-        with patch("services.v1.auth_services.bcrypt.checkpw", return_value=False):
+        with patch("services.v1.AuthServicesices.bcrypt.checkpw", return_value=False):
             # Act
             response = asyncio.run(
-                Auth_Serv.login_Serv(
+                AuthServices.login_serv(
                     email, password, mock_db_session, accept_language, mock_request
                 )
             )
@@ -307,12 +309,12 @@ def test_login_no_stored_password(mock_db_session, mock_request):
     # Mock user query with empty password
     mock_user = MagicMock()
     mock_user.id = "user_123"
-    mock_user.pwd = ""
+    mock_user.password = ""
     mock_db_session.query().filter().first.return_value = mock_user
 
     # Act
     response = asyncio.run(
-        Auth_Serv.login_Serv(
+        AuthServices.login_serv(
             email, password, mock_db_session, accept_language, mock_request
         )
     )
@@ -335,34 +337,34 @@ def test_login_audit_log_exception(mock_db_session, mock_request):
     # Mock user query
     mock_user = MagicMock()
     mock_user.id = "user_123"
-    mock_user.pwd = "hashed_password"
+    mock_user.password = "hashed_password"
     mock_db_session.query().filter().first.return_value = mock_user
 
     # Mock dependencies
     with patch(
-        "services.v1.auth_services.Auth_DatabaseConnection.verifyActiveStatus",
+        "services.v1.AuthServicesices.Auth_DatabaseConnection.verifyActiveStatus",
         return_value=1,
     ):
-        with patch("services.v1.auth_services.bcrypt.checkpw", return_value=True):
+        with patch("services.v1.AuthServicesices.bcrypt.checkpw", return_value=True):
             with patch(
-                "services.v1.auth_services.create_access_token",
+                "services.v1.AuthServicesices.create_access_token",
                 return_value="access_token_123",
             ):
                 with patch(
-                    "services.v1.auth_services.create_refresh_token",
+                    "services.v1.AuthServicesices.create_refresh_token",
                     return_value="refresh_token_123",
                 ):
                     with patch(
-                        "services.v1.auth_services.log_audit",
+                        "services.v1.AuthServicesices.log_audit",
                         side_effect=Exception("Audit log error"),
                     ):
                         with patch(
-                            "services.v1.auth_services.Auth_DatabaseConnection.updateAccessToken",
+                            "services.v1.AuthServicesices.Auth_DatabaseConnection.updateAccessToken",
                             return_value=None,
                         ):
                             # Act
                             response = asyncio.run(
-                                Auth_Serv.login_Serv(
+                                AuthServices.login_serv(
                                     email,
                                     password,
                                     mock_db_session,

@@ -5,9 +5,7 @@ from fastapi.responses import JSONResponse
 from dao.v1.role_dao import Role_DBConn
 
 
-async def verifyModuleRolendPermID(
-    role_id, module_id, permission_id, db, accept_language
-):
+async def verifyModuleRolendPermID(role_id, module_id, permission_id, db):
     # Fetch existing Role IDs from the database
     data = [i.id for i in Role_DBConn.getRoleData(db)]
     if role_id not in data:
@@ -50,9 +48,7 @@ async def verifyModuleRolendPermID(
     )  # Return True if verification is successful
 
 
-async def verifyModuleUserndPermID(
-    user_id, module_id, permission_id, db, accept_language
-):
+async def verifyModuleUserndPermID(user_id, module_id, permission_id, db):
     # Fetch existing User IDs from the database
     data = [i.id for i in user_databaseConnection.getUserTable(db)]
     if user_id not in data:

@@ -19,7 +19,7 @@ class Module_DBConn:
     def addModDB(name, created_by, db: Session):
         try:
             # data = True  # Default return value indicating success
-            newModule = Module(name=name, created_by=created_by)
+            newModule = Module(module_name=name, created_by=created_by)
             db.add(newModule)
             db.commit()  # Committing the transaction
             return JSONResponse(

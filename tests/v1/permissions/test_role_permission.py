@@ -5,14 +5,14 @@ from unittest.mock import patch, AsyncMock, MagicMock
 # from helpers.v1.helpers import fetchRecord
 from dao.v1.perm_dao import RolePerm_DBConn
 from fastapi.responses import JSONResponse
-from model.v1.perm_model import RolePermission
+from model.v1.permission_model import RolePermission
 from sqlalchemy import and_, null
 from starlette.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
     HTTP_400_BAD_REQUEST,
     HTTP_403_FORBIDDEN,
-    HTTP_422_UNPROCESSABLE_ENTITY,
+    HTTP_422_UNPROCESSABLE_CONTENT,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 
@@ -191,7 +191,7 @@ def test_getRolePermission_invalid_role_id_format(client, get_valid_token):
 
     response = client.get("/v1/perm/getrolepermission?role_id=invalid", headers=headers)
 
-    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
     assert "detail" in json_data
 
@@ -881,7 +881,7 @@ def test_delete_role_perm_verify_id(mock_delete, client, get_valid_token):
     headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
     response = client.delete("/v1/perm/deleterolepermission?rp_id=", headers=headers)
 
-    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
     assert "detail" in json_data
 
@@ -918,7 +918,7 @@ def test_delete_role_perm_invalid_id_format(client, get_valid_token):
         "/v1/perm/deleterolepermission?rp_id=invalid", headers=headers
     )
 
-    assert response.status_code == HTTP_422_UNPROCESSABLE_ENTITY
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
     assert "detail" in json_data
 

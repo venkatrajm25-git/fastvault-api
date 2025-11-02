@@ -19,13 +19,13 @@ user_logger.addHandler(log_handler)
 
 class UserController:
     @staticmethod
-    async def getAllUser(userID, db, accept_language):
+    async def getAllUser(userID, db):
         """Retrieves details of all users or a specific user by ID."""
         try:
             user_logger.info(f"getAllUser called with user ID: {userID}")
 
             # Call service layer to get users
-            result = await user_services.getAlluser_serv(userID, db, accept_language)
+            result = await user_services.getAlluser_serv(userID, db)
 
             return result
         except Exception as e:
@@ -36,7 +36,7 @@ class UserController:
             )
 
     @staticmethod
-    async def updateUser(data, db, accept_language, current_user):
+    async def updateUser(data, db, current_user):
         """Updates user details such as username, status, and role."""
         try:
             user_logger.info(f"updateUser called with data: {data}")
@@ -49,7 +49,7 @@ class UserController:
             dataList = [id, username, status, role, modifiedby]
 
             # Call service layer to update user
-            result = await user_services.updateUser_serv(dataList, db, accept_language)
+            result = await user_services.updateUser_serv(dataList, db)
             user_logger.info("updateUser successful")
             return result
         except Exception as e:
@@ -60,7 +60,7 @@ class UserController:
             )
 
     @staticmethod
-    async def deleteUser(id, db, accept_language):
+    async def deleteUser(id, db):
         """Deletes a specific user from the system."""
         try:
             user_logger.info(f"deleteUser called with user ID: {id}")

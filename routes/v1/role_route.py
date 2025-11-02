@@ -18,9 +18,8 @@ async def get_role(
     role_id: int = Query(None),
     current_user: dict = Depends(token_required(required_permission=[(1, 2)])),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
-    return await RoleController.getRole(role_id, db, accept_language)
+    return await RoleController.getRole(role_id, db)
 
 
 # roleBP.route('/addrole', methods=['POST'], endpoint="add_role")(Services.addrole)
@@ -34,10 +33,9 @@ async def add_role(
     request: Request,
     current_user: dict = Depends(token_required(required_permission=[(1, 1)])),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
     data = await request.json()
-    return RoleController.addrole(data, db, accept_language, current_user)
+    return RoleController.addrole(data, db, current_user)
 
 
 @router.patch("/updaterole")
@@ -51,9 +49,8 @@ async def update_role(
     data: UpdateRole,
     current_user: dict = Depends(token_required(required_permission=[(1, 3)])),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
-    return await RoleController.updateRole(data, db, accept_language, current_user)
+    return await RoleController.updateRole(data, db, current_user)
 
 
 @router.delete("/deleterole")
@@ -67,7 +64,6 @@ async def delete_role(
     role_id: int = Query(...),
     current_user: dict = Depends(token_required(required_permission=[(1, 4)])),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
 
-    return await RoleController.deleteRole(role_id, db, accept_language)
+    return await RoleController.deleteRole(role_id, db)

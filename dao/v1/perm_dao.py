@@ -100,7 +100,7 @@ class RolePerm_DBConn:
             return []
 
     @staticmethod
-    def addRolePerm(dataList, db: Session, accept_language):
+    def addRolePerm(dataList, db: Session):
         try:
             # Query to insert a new role permission record
             newRolePermission = RolePermission(
@@ -134,9 +134,7 @@ class RolePerm_DBConn:
             )
 
     @staticmethod
-    def updateRolePermissionDB(
-        recentUpdate, data2update, id, db: Session, accept_language
-    ):
+    def updateRolePermissionDB(recentUpdate, data2update, id, db: Session):
         try:
             updateData = dict(zip(recentUpdate, data2update))
             db.query(RolePermission).filter(RolePermission.id == id).update(updateData)

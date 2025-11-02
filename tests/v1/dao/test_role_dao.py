@@ -25,7 +25,7 @@ def test_get_role_data_success(db_session: Session):
     assert isinstance(result, list), "Result should be a list"
     assert len(result) >= 1, "Result should contain at least one record"
     assert any(
-        r.rolename == "Test Role" for r in result
+        r.role_name == "Test Role" for r in result
     ), "Result should contain 'Test Role'"
 
     # Cleanup
@@ -47,7 +47,7 @@ def test_create_role_success(db_session: Session):
     # Verify record in DB
     added_role = db_session.query(Role).filter(Role.rolename == "New Role").first()
     assert added_role is not None, "Role should exist in database"
-    assert added_role.rolename == "New Role", "Role name should match"
+    assert added_role.role_name == "New Role", "Role name should match"
     assert added_role.status == 1, "Status should match"
     assert added_role.created_by == 999, "Created_by should match"
 
@@ -58,7 +58,7 @@ def test_create_role_success(db_session: Session):
 
 def test_create_role_duplicate_entry(db_session: Session):
     # Arrange: Insert a Role first
-    data = db_session.query(Role).filter(Role.rolename == "Duplicate Role").first()
+    data = db_session.query(Role).filter(Role.role_name == "Duplicate Role").first()
     if not data:
         test_role = Role(
             rolename="Duplicate Role", status=1, created_by=1, is_deleted=0
@@ -80,7 +80,7 @@ def test_create_role_duplicate_entry(db_session: Session):
     assert result["error"] == "Duplicate entry"
 
     # Cleanup
-    db_session.query(Role).filter(Role.rolename == "Duplicate Role").delete()
+    db_session.query(Role).filter(Role.role_name == "Duplicate Role").delete()
     db_session.commit()
 
 
@@ -143,7 +143,7 @@ def test_create_role_general_exception():
 # Test for updateRoleDB (success case)
 def test_update_role_success(db_session: Session):
     # Arrange: Insert a test Role record
-    test_role = Role(rolename="Old Role", status=1, created_by=999, is_deleted=0)
+    test_role = Role(role_name="Old Role", status=1, created_by=999, is_deleted=0)
     db_session.add(test_role)
     db_session.commit()
     db_session.refresh(test_role)
@@ -162,7 +162,7 @@ def test_update_role_success(db_session: Session):
     # Verify updated record in DB
     updated_role = db_session.query(Role).filter(Role.id == test_role.id).first()
     assert updated_role is not None, "Updated role should exist"
-    assert updated_role.rolename == "Updated Role", "Role name should be updated"
+    assert updated_role.role_name == "Updated Role", "Role name should be updated"
     assert updated_role.status == 2, "Status should be updated"
 
     # Cleanup
@@ -193,6 +193,6 @@ def test_update_role_general_exception():
     # Simulate unexpected general exception
     db.query().filter().update.side_effect = Exception("Unexpected crash")
 
-    response = Role_DBConn.updateRoleDB(1, ["rolename"], ["new_role"], db)
+    response = Role_DBConn.updateRoleDB(1, ["role_name"], ["new_role"], db)
 
     assert response is False

@@ -7,7 +7,7 @@ from sqlalchemy import text
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
 from dao.v1.module_dao import Module_DBConn
 from dao.v1.perm_dao import Permissions_DBConn, RolePerm_DBConn, UserPerm_DBConn
-from model.v1.perm_model import Permission, RolePermission, UserPermission
+from model.v1.permission_model import Permission, RolePermission, UserPermission
 
 
 # Mock translation functions for RolePerm_DBConn
@@ -470,7 +470,7 @@ def test_add_role_perm_success(db_session):
     accept_language = "en"
 
     # Act
-    response = RolePerm_DBConn.addRolePerm(data_list, db_session, accept_language)
+    response = RolePerm_DBConn.addRolePerm(data_list, db_session)
 
     # Assert
     assert isinstance(response, JSONResponse)
@@ -510,7 +510,7 @@ def test_add_role_perm_duplicate_entry(db_session):
         db_session.commit()
 
         # Act
-    response = RolePerm_DBConn.addRolePerm(data_list, db_session, accept_language)
+    response = RolePerm_DBConn.addRolePerm(data_list, db_session)
 
     # Assert
     assert isinstance(response, JSONResponse)
@@ -533,7 +533,7 @@ def test_add_role_permission_generic_integrity_error():
     )
     db.commit.side_effect = integrity_error
 
-    response = RolePerm_DBConn.addRolePerm([1, 2, 3], db, accept_language="en")
+    response = RolePerm_DBConn.addRolePerm([1, 2, 3], db="en")
 
     assert isinstance(response, JSONResponse)
     assert response.status_code == 400
@@ -546,7 +546,7 @@ def test_add_role_permission_general_exception():
     # Simulate unexpected error on db.add()
     db.add.side_effect = Exception("Unexpected crash")
 
-    response = RolePerm_DBConn.addRolePerm([1, 2, 3], db, accept_language="en")
+    response = RolePerm_DBConn.addRolePerm([1, 2, 3], db="en")
 
     assert isinstance(response, JSONResponse)
     assert response.status_code == 400
@@ -577,7 +577,7 @@ def test_update_role_permission_db_success(db_session):
 
     # Act
     response = RolePerm_DBConn.updateRolePermissionDB(
-        recent_update, data2update, rp_id, db_session, accept_language
+        recent_update, data2update, rp_id, db_session
     )
 
     # Assert
@@ -631,7 +631,7 @@ def test_update_role_permission_db_duplicate_entry(db_session):
     accept_language = "en"
 
     response = RolePerm_DBConn.updateRolePermissionDB(
-        recent_update, data2update, rp1_id, db_session, accept_language
+        recent_update, data2update, rp1_id, db_session
     )
 
     assert isinstance(response, JSONResponse)
@@ -686,7 +686,7 @@ def test_update_role_permission_general_exception():
     db.query().filter().update.side_effect = Exception("Unexpected crash")
 
     response = RolePerm_DBConn.updateRolePermissionDB(
-        ["field1"], ["value1"], 1, db, accept_language="en"
+        ["field1"], ["value1"], 1, db="en"
     )
 
     assert isinstance(response, JSONResponse)

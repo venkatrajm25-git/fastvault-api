@@ -14,9 +14,8 @@ async def get_role_permission(
     role_id: int = Query(None),
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
-    return await PermissionModule.getRolePermission(role_id, db, accept_language)
+    return await PermissionModule.getRolePermission(role_id, db)
 
 
 @router.post("/addrolepermission")
@@ -29,10 +28,9 @@ async def add_role_permission(
     request: Request,
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
     data = await request.json()
-    return await PermissionModule.addRolePermission(data, db, accept_language)
+    return await PermissionModule.addRolePermission(data, db)
 
 
 @router.patch("/updaterolepermission")
@@ -46,10 +44,9 @@ async def update_role_permission(
     request: Request,
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
     data = getattr(request, "_json", None) or await request.json()
-    return await PermissionModule.updateRolePermission(data, db, accept_language)
+    return await PermissionModule.updateRolePermission(data, db)
 
 
 @router.delete("/deleterolepermission")
@@ -63,10 +60,9 @@ async def delete_role_permission(
     rp_id: int = Query(...),
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
 
-    return await PermissionModule.deleteRolePermission(rp_id, db, accept_language)
+    return await PermissionModule.deleteRolePermission(rp_id, db)
 
 
 @router.get("/getsingleuserperm")
@@ -75,11 +71,8 @@ async def get_single_user_permission(
     user_id: int = Query(None),
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
-    return await PermissionModule.getSingleUserPermission(
-        email, user_id, db, accept_language
-    )
+    return await PermissionModule.getSingleUserPermission(email, user_id, db)
 
 
 @router.post("/adduserpermission")
@@ -92,10 +85,9 @@ async def add_user_permission(
     request: Request,
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
     data = await request.json()
-    return await PermissionModule.addUserPermission(data, db, accept_language)
+    return await PermissionModule.addUserPermission(data, db)
 
 
 @router.get("/getuserpermission")
@@ -103,9 +95,8 @@ async def get_user_permission(
     user_id: int = Query(None),
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
-    return await PermissionModule.getUserPermission(user_id, db, accept_language)
+    return await PermissionModule.getUserPermission(user_id, db)
 
 
 @router.patch("/updateuserpermission")
@@ -119,10 +110,9 @@ async def update_user_permission(
     request: Request,
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
     data = getattr(request, "_json", None) or await request.json()
-    return await PermissionModule.updateUserPermission(data, db, accept_language)
+    return await PermissionModule.updateUserPermission(data, db)
 
 
 @router.delete("/deleteuserpermission")
@@ -136,9 +126,8 @@ async def delete_user_permission(
     up_id: int = Query(None),
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
-    return await PermissionModule.deleteUserPermission(up_id, db, accept_language)
+    return await PermissionModule.deleteUserPermission(up_id, db)
 
 
 @router.post("/addpermission")
@@ -151,11 +140,10 @@ async def add_permission(
     request: Request,
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
     data = await request.json()
     add_perm_data = {"name": data.get("name"), "current user": current_user}
-    return await PermissionModule.addPermission(add_perm_data, db, accept_language)
+    return await PermissionModule.addPermission(add_perm_data, db)
 
 
 @router.get("/getpermission")
@@ -163,9 +151,8 @@ async def get_permission(
     permission_id: int = Query(None),
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
-    return await PermissionModule.getPermission(permission_id, db, accept_language)
+    return await PermissionModule.getPermission(permission_id, db)
 
 
 @router.patch("/updatepermission")
@@ -179,12 +166,9 @@ async def update_permission(
     request: Request,
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
     data = getattr(request, "_json", None) or await request.json()
-    return await PermissionModule.updatePermission(
-        data, db, accept_language, current_user
-    )
+    return await PermissionModule.updatePermission(data, db, current_user)
 
 
 @router.delete("/deletepermission")
@@ -198,6 +182,5 @@ async def delete_permission(
     permission_id: int = Query(None),
     current_user: dict = Depends(token_required(required_role="admin")),
     db: Session = Depends(getDBConnection),
-    accept_language: str = Header(default="en"),
 ):
-    return await PermissionModule.deletePermission(permission_id, db, accept_language)
+    return await PermissionModule.deletePermission(permission_id, db)
