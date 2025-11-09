@@ -1,5 +1,5 @@
 from controllers.v1.perm_controller import PermissionModule
-from fastapi import APIRouter, Request, Depends, Query, Header
+from fastapi import APIRouter, Request, Depends, Query
 from middleware.v1.auth_token import token_required
 from sqlalchemy.orm import Session
 from database.v1.connection import getDBConnection

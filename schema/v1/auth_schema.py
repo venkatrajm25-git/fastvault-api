@@ -20,3 +20,9 @@ class UpdateUserRequest(BaseModel):
     username: str
     status: int
     role: int
+
+
+class ResetPassBaseModel(BaseModel):
+    token: str
+    newPassword: str
+    confirmPassword: str

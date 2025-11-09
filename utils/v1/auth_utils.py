@@ -1,5 +1,5 @@
 import bcrypt
-import datetime
+from datetime import datetime
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 from model.v1.user_model import PasswordResetToken
@@ -31,7 +31,7 @@ async def verifyResetPassToken(raw_token, db: Session):
 
     valid_token = None
     for t in tokens_from_db:
-        if verify_password(raw_token, t):
+        if verify_password(raw_token, t.token):
             valid_token = t
             break
 
