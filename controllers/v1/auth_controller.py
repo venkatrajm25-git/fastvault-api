@@ -6,6 +6,7 @@ from sqlalchemy.orm import Session
 from utils.v1.auth_utils import hash_password, verifyResetPassToken
 from dao.v1.user_dao import user_databaseConnection
 import logging
+from utils.v1.utility import generate_reset_token, sendResetLink
 
 # from utils.v1.utility import sendResetLink
 from logging.handlers import RotatingFileHandler
@@ -62,7 +63,7 @@ class AuthController:
             dataList = [user_id, hashed_token, expires_at]
             saveResetToken = user_databaseConnection.addResetPasswordToken(dataList, db)
 
-            # success = sendResetLink(receiverEmail, background_task, db, raw_token)
+            success = sendResetLink(receiverEmail, background_task, db, raw_token)
             auth_logger.info(
                 f"email: {receiverEmail} - Forget Password - Mail will be sent."
             )

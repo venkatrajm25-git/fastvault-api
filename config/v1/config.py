@@ -17,6 +17,11 @@ class Config:
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
 
+    FRONTEND_URL = os.getenv("FRONTEND_URL")
+    # SMTP
+    SENDER_EMAIL = os.getenv("SENDER_EMAIL")
+    SENDER_PASSWORD = os.getenv("SENDER_PASSWORD")
+
 
 class TestingConfig:
     # DB
@@ -33,6 +38,7 @@ class TestingConfig:
     # JWT
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
     JWT_ALGORITHM = os.getenv("JWT_ALGORITHM")
+    FRONTEND_URL = os.getenv("FRONTEND_URL")
 
 
 class ProductionConfig:

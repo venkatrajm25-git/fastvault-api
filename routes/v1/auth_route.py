@@ -1,17 +1,30 @@
-from fastapi import APIRouter, Depends, Request
-from config.v1.config_dev import getDBConnection
 from sqlalchemy.orm import Session
-from fastapi import HTTPException
+from config.v1.config_dev import getDBConnection
 from controllers.v1.auth_controller import AuthController
+from fastapi.responses import JSONResponse
+from fastapi import (
+    APIRouter,
+    Depends,
+    Request,
+    Header,
+    BackgroundTasks,
+    Query,
+    HTTPException,
+)
 from model.v1.user_model import User
-from schema.v1.auth_schema import RegisterUserBaseModel, LoginUserBaseModel
+from schema.v1.auth_schema import (
+    RegisterUserBaseModel,
+    LoginUserBaseModel,
+    ResetPassBaseModel,
+)
 import jwt
 from config.v1.config import Config
 from dao.v1.auth_dao import AuthDAO
-from utils.v1.token_generation import create_access_token
-from fastapi.responses import JSONResponse
-from utils.v1.redis_client import blacklist_token
 from middleware.v1.auth_token import token_required
+from utils.v1.token_generation import create_access_token
+from utils.v1.auth_utils import verifyResetPassToken
+from utils.v1.audit_logger import log_audit
+from utils.v1.redis_client import blacklist_token
 
 router = APIRouter()
 
@@ -77,8 +90,40 @@ async def dummy_route(
     return {"user_name": data.user_name, "message": "Route Working."}
 
 
+@router.post("/forgetpassword", name="forget_password")
+async def forgot_password(
+    request: Request,
+    background_task: BackgroundTasks,
+    db: Session = Depends(getDBConnection),
+):
+    data = await request.json()
+    email = data.get("email", "")
+    return AuthController.forgetPassword(email, request, background_task, db)
+
+
+@router.get("/reset-password")
+async def verify_reset_pass_token(
+    token: str = Query(...), db: Session = Depends(getDBConnection)
+):
+    token_row = await verifyResetPassToken(token, db)
+    return {"success": True, "message": "Valid link"}
+
+
+@router.post("/reset-password")
+async def reset_password(
+    data: ResetPassBaseModel,
+    db: Session = Depends(getDBConnection),
+    accept_language: str = Header(default="en"),
+):
+    return await AuthController.resetPasswordSubmit(data, db)
+
+
 @router.post("/logout")
-async def logout(request: Request, user: dict = Depends(token_required())):
+async def logout(
+    request: Request,
+    user: dict = Depends(token_required()),
+    db: Session = Depends(getDBConnection),
+):
     access_token = request.cookies.get("access_token")
     refresh_token = request.cookies.get("refresh_token")
 
@@ -89,6 +134,20 @@ async def logout(request: Request, user: dict = Depends(token_required())):
         blacklist_token(access_token)
     if refresh_token:
         blacklist_token(refresh_token)
+
+    try:
+        await log_audit(
+            db=db,
+            table_name="users",
+            record_id=user.id,
+            action="LOGOUT",
+            user=user.id,
+            request=request,
+            old_data=None,
+            new_data=None,
+        )
+    except Exception:
+        pass
 
     response = JSONResponse(
         content={"success": True, "message": "Logged Out Successfully."}
