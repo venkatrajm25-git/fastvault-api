@@ -2,7 +2,7 @@ from typing import final
 from sqlalchemy import create_engine
 from config.v1.config import Config
 from sqlalchemy.orm import sessionmaker
-from sqlalchemy.ext.declarative import declarative_base
+from sqlalchemy.orm import declarative_base
 
 engine = create_engine(Config.DATABASE_URL, echo=False)
 

@@ -1,11 +1,8 @@
-import pytest
 import json
 from unittest.mock import patch, MagicMock
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
-from sqlalchemy import text
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
-from dao.v1.module_dao import Module_DBConn
 from dao.v1.perm_dao import Permissions_DBConn, RolePerm_DBConn, UserPerm_DBConn
 from model.v1.permission_model import Permission, RolePermission, UserPermission
 

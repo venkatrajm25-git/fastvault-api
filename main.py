@@ -12,6 +12,7 @@ from routes.v1.route_register import register_routes
 from core.v1.exception_handler import register_exception_handlers
 
 register_routes(app)
+print("✅ Routes registered successfully")
 
 register_exception_handlers(app)
 
