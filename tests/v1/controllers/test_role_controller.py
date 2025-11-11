@@ -1,12 +1,9 @@
 from unittest.mock import patch, MagicMock
-from sqlalchemy.exc import IntegrityError
-from dao.v1.role_dao import Role_DBConn
 from fastapi.responses import JSONResponse
 from starlette.status import (
     HTTP_200_OK,
     HTTP_201_CREATED,
     HTTP_400_BAD_REQUEST,
-    HTTP_401_UNAUTHORIZED,
     HTTP_403_FORBIDDEN,
     HTTP_422_UNPROCESSABLE_CONTENT,
     HTTP_500_INTERNAL_SERVER_ERROR,

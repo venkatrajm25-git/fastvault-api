@@ -1,5 +1,4 @@
 from unittest.mock import patch, MagicMock
-from services.v1.user_services import user_databaseConnection
 from fastapi.responses import JSONResponse
 from database.v1.connection import getDBConnection
 from starlette.status import (

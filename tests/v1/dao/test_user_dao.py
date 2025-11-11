@@ -4,7 +4,6 @@ import sqlalchemy.orm
 
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
-from sqlalchemy.exc import IntegrityError
 from model.v1.user_model import User  # Adjust import as needed
 from dao.v1.user_dao import user_databaseConnection
 

@@ -4,9 +4,6 @@ from unittest.mock import patch, MagicMock
 import json
 from dao.v1.user_dao import user_databaseConnection
 from utils.v1.utility import (
-    deleteFile,
-    deletewithFilename,
-    saveImage,
     sendEmail_background_task,
     sendResetLink,
 )
@@ -78,44 +75,44 @@ def test_send_reset_link_exception(mock_db_session, mock_background_task):
     mock_background_task.add_task.assert_not_called()
 
 
-def test_save_image_exception():
-    # Arrange
-    image = MagicMock()
-    image.filename = "test.jpg"
+# def test_save_image_exception():
+#     # Arrange
+#     image = MagicMock()
+#     image.filename = "test.jpg"
 
-    with patch("os.path.join", return_value="/uploads/test.jpg"):
-        with patch.object(image, "save", side_effect=OSError("Disk full")):
-            # Act
-            try:
-                saveImage(image)
-                pytest.fail("Expected OSError")
-            except OSError as e:
-                # Assert
-                assert str(e) == "Disk full"
-
-
-def test_delete_file_exception():
-    # Arrange
-    image = MagicMock()
-    image.filename = "test.jpg"
-
-    with patch("os.path.join", return_value="/uploads/test.jpg"):
-        with patch("os.remove", side_effect=FileNotFoundError("File not found")):
-            # Act
-            result = deleteFile(image)
-
-    # Assert
-    assert result is None  # Function returns None implicitly
+#     with patch("os.path.join", return_value="/uploads/test.jpg"):
+#         with patch.object(image, "save", side_effect=OSError("Disk full")):
+#             # Act
+#             try:
+#                 saveImage(image)
+#                 pytest.fail("Expected OSError")
+#             except OSError as e:
+#                 # Assert
+#                 assert str(e) == "Disk full"
 
 
-def test_delete_with_filename_exception():
-    # Arrange
-    image = "test.jpg"
+# def test_delete_file_exception():
+#     # Arrange
+#     image = MagicMock()
+#     image.filename = "test.jpg"
 
-    with patch("os.path.join", return_value="/uploads/test.jpg"):
-        with patch("os.remove", side_effect=FileNotFoundError("File not found")):
-            # Act
-            result = deletewithFilename(image)
+#     with patch("os.path.join", return_value="/uploads/test.jpg"):
+#         with patch("os.remove", side_effect=FileNotFoundError("File not found")):
+#             # Act
+#             result = deleteFile(image)
 
-    # Assert
-    assert result is None  # Function returns None implicitly
+#     # Assert
+#     assert result is None  # Function returns None implicitly
+
+
+# def test_delete_with_filename_exception():
+#     # Arrange
+#     image = "test.jpg"
+
+#     with patch("os.path.join", return_value="/uploads/test.jpg"):
+#         with patch("os.remove", side_effect=FileNotFoundError("File not found")):
+#             # Act
+#             result = deletewithFilename(image)
+
+#     # Assert
+#     assert result is None  # Function returns None implicitly

@@ -1,5 +1,4 @@
 from unittest.mock import patch
-from urllib import response
 from fastapi.responses import JSONResponse
 from dao.v1.module_dao import Module_DBConn
 from model.v1.module_model import Module
