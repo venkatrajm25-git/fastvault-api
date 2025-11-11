@@ -1,0 +1,7 @@
+# Role:
+#   module: [Permissions]
+
+Admin:
+  Role: [Create, Read, Update, Delete]
+  User Management: [Create, Read, Update, Delete]
+  RAG Model: [Create, Read, Update, Delete]

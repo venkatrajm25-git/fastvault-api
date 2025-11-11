@@ -1,0 +1,5 @@
+# user_email:
+  # module: [Permissions]
+
+masteradmin@gmail.com:
+  Role: [Read, Create]
