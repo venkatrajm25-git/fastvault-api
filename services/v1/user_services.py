@@ -4,17 +4,33 @@ from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
 import logging
 
-log_handler = RotatingFileHandler(
-    "logs/v1/user_services.log", maxBytes=5 * 1024 * 1024, backupCount=5
-)
-log_handler.setLevel(logging.INFO)
+import os
+import logging
+from logging.handlers import RotatingFileHandler
+
+# Detect environment
+is_render = os.getenv("RENDER", "false").lower() == "true"
+
+# Create logger
+perm_logger = logging.getLogger("user_services")
+perm_logger.setLevel(logging.INFO)
+
+# Common formatter
 formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+
+if is_render:
+    # ✅ Render → Console logging
+    log_handler = logging.StreamHandler()
+else:
+    # ✅ Local → File logging
+    log_dir = "logs/v1"
+    os.makedirs(log_dir, exist_ok=True)
+    log_handler = RotatingFileHandler(
+        f"{log_dir}/user_services.log", maxBytes=5 * 1024 * 1024, backupCount=5
+    )
+
 log_handler.setFormatter(formatter)
-
-logger = logging.getLogger("user_services")
-logger.setLevel(logging.INFO)
-logger.addHandler(log_handler)
-
+perm_logger.addHandler(log_handler)
 
 class user_services:
     @staticmethod
