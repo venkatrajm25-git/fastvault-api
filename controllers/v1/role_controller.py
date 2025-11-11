@@ -1,22 +1,39 @@
 from services.v1.role_services import Role_Services
 from dao.v1.role_dao import Role_DBConn
-from logging.handlers import RotatingFileHandler
 from fastapi.responses import JSONResponse
 from model.v1.user_model import Role
 from sqlalchemy.orm import Session
+
+
+
+import os
 import logging
+from logging.handlers import RotatingFileHandler
 
+# Detect Render environment
+is_render = os.getenv("RENDER", "false").lower() == "true"
 
-log_handler = RotatingFileHandler(
-    "logs/v1/role_controller.log", maxBytes=5 * 1024 * 1024, backupCount=5
-)
-log_handler.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-log_handler.setFormatter(formatter)
-
+# Create logger
 role_logger = logging.getLogger("role_logger")
 role_logger.setLevel(logging.INFO)
+
+# Common formatter
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+
+if is_render:
+    # ✅ Render: print to console (Render shows these logs automatically)
+    log_handler = logging.StreamHandler()
+else:
+    # ✅ Local: make sure folder exists before writing log file
+    log_dir = "logs/v1"
+    os.makedirs(log_dir, exist_ok=True)  # <-- this prevents FileNotFoundError
+    log_handler = RotatingFileHandler(
+        f"{log_dir}/role_controller.log", maxBytes=5 * 1024 * 1024, backupCount=5
+    )
+
+log_handler.setFormatter(formatter)
 role_logger.addHandler(log_handler)
+
 
 
 class RoleController:
