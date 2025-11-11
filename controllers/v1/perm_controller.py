@@ -12,20 +12,32 @@ from logging.handlers import RotatingFileHandler
 from fastapi.responses import JSONResponse
 from collections import defaultdict
 import logging
+import os
 
 
 # Configure rotating log handler for user activity
-log_handler = RotatingFileHandler(
-    "logs/v1/perm_controller.log", maxBytes=5 * 1024 * 1024, backupCount=5
-)  # 5MB max per file, keeps 5 backups
+# Detect environment
+is_render = os.getenv("RENDER", "false").lower() == "true"
 
-log_handler.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-log_handler.setFormatter(formatter)
-
-# Get logger and attach handler
+# Create logger
 perm_logger = logging.getLogger("perm_logger")
 perm_logger.setLevel(logging.INFO)
+
+# Common formatter
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+
+if is_render:
+    # ✅ Render → log to console (Render captures stdout logs)
+    log_handler = logging.StreamHandler()
+else:
+    # ✅ Local → ensure folder exists, then log to file
+    log_dir = "logs/v1"
+    os.makedirs(log_dir, exist_ok=True)
+    log_handler = RotatingFileHandler(
+        f"{log_dir}/perm_controller.log", maxBytes=5 * 1024 * 1024, backupCount=5
+    )
+
+log_handler.setFormatter(formatter)
 perm_logger.addHandler(log_handler)
 
 
