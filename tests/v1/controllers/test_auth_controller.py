@@ -16,7 +16,7 @@ from starlette.status import (
     HTTP_422_UNPROCESSABLE_CONTENT,
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
-from controllers.v1.auth_controller import Authenticator
+from controllers.v1.auth_controller import AuthController
 from model.v1.user_model import Users
 from routes.v1 import auth_route
 
