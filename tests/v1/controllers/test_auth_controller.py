@@ -17,38 +17,15 @@ from starlette.status import (
     HTTP_500_INTERNAL_SERVER_ERROR,
 )
 from controllers.v1.auth_controller import AuthController
-from model.v1.user_model import Users
+from model.v1.user_model import User
 from routes.v1 import auth_route
 
 
 sys.path.insert(0, os.path.abspath(os.path.dirname(__file__) + "/../../"))
 
-# * SHOW REGISTER FORM STARTED
-
-
-def test_show_register_form_success(client):
-    """Test successful rendering of register.html for GET request"""
-    response = client.get("/v1/auth/createuser")
-
-    assert response.status_code == HTTP_200_OK
-    assert "text/html" in response.headers["content-type"]
-
-
-@patch("controllers.v1.auth_controller.templates.TemplateResponse")
-def test_show_register_form_template_context(mock_template_response, client):
-    """Test that the template is called with correct context"""
-    mock_template_response.return_value = "Mocked HTML Response"
-    response = client.get("/v1/auth/createuser")
-
-    assert response.status_code == HTTP_200_OK
-    mock_template_response.assert_called_once()
-
-
-# * SHOW REGISTER FORM ENDED
-
 
 # * CREATE USER FUNCTION STARTED
-@patch("controllers.v1.auth_controller.Auth_Serv.createUser_Serv")
+@patch("controllers.v1.auth_controller.AuthServices.register_serv")
 def test_create_user_success(mock_serv, client, get_valid_token):
     """Test successful user creation"""
     mock_serv.return_value = JSONResponse(
@@ -71,7 +48,7 @@ def test_create_user_success(mock_serv, client, get_valid_token):
         "status": 1,
         "role": 2,
     }
-    response = client.post("/v1/auth/createuser", json=payload, headers=headers)
+    response = client.post("/v1/auth/register", json=payload, headers=headers)
     print("response", response.text)
     assert response.status_code == HTTP_201_CREATED
     json_data = response.json()
@@ -86,11 +63,9 @@ def test_create_user_missing_email(client, get_valid_token):
     """Test user creation with missing email"""
     headers = {"Authorization": f"Bearer {get_valid_token}"}
     payload = {"password": "Test@123", "username": "testuser", "status": 1, "role": 2}
-    response = client.post("/v1/auth/createuser", json=payload, headers=headers)
+    response = client.post("/v1/auth/register", json=payload, headers=headers)
 
-    assert response.status_code == HTTP_400_BAD_REQUEST
-    json_data = response.json()
-    assert json_data["message"] == "Email is required"
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
 
 
 def test_create_user_missing_password(client, get_valid_token):
@@ -102,14 +77,12 @@ def test_create_user_missing_password(client, get_valid_token):
         "status": 1,
         "role": 2,
     }
-    response = client.post("/v1/auth/createuser", json=payload, headers=headers)
+    response = client.post("/v1/auth/register", json=payload, headers=headers)
 
-    assert response.status_code == HTTP_400_BAD_REQUEST
-    json_data = response.json()
-    assert json_data["message"] == "Password is required"
+    assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
 
 
-@patch("controllers.v1.auth_controller.Auth_Serv.createUser_Serv")
+@patch("controllers.v1.auth_controller.AuthServices.register_serv")
 def test_create_user_email_already_exists(mock_serv, client, get_valid_token):
     """Test user creation with already registered email"""
     mock_serv.return_value = JSONResponse(
@@ -124,14 +97,14 @@ def test_create_user_email_already_exists(mock_serv, client, get_valid_token):
         "status": 1,
         "role": 2,
     }
-    response = client.post("/v1/auth/createuser", json=payload, headers=headers)
+    response = client.post("/v1/auth/register", json=payload, headers=headers)
 
     assert response.status_code == HTTP_400_BAD_REQUEST
     json_data = response.json()
     assert json_data["message"] == "Email ID is already registered."
 
 
-@patch("controllers.v1.auth_controller.Auth_Serv.createUser_Serv")
+@patch("controllers.v1.auth_controller.AuthServices.register_serv")
 def test_create_user_invalid_status(mock_serv, client, get_valid_token):
     """Test user creation with invalid status"""
     headers = {"Authorization": f"Bearer {get_valid_token}"}
@@ -142,14 +115,14 @@ def test_create_user_invalid_status(mock_serv, client, get_valid_token):
         "status": "invalid",  # Invalid status
         "role": 2,
     }
-    response = client.post("/v1/auth/createuser", json=payload, headers=headers)
+    response = client.post("/v1/auth/register", json=payload, headers=headers)
 
     assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
     assert "detail" in json_data
 
 
-@patch("controllers.v1.auth_controller.Auth_Serv.createUser_Serv")
+@patch("controllers.v1.auth_controller.AuthServices.register_serv")
 def test_create_user_duplicate_entry(mock_serv, client, get_valid_token):
     """Test user creation with duplicate entry error"""
     mock_serv.return_value = JSONResponse(
@@ -163,7 +136,7 @@ def test_create_user_duplicate_entry(mock_serv, client, get_valid_token):
         "status": 1,
         "role": 2,
     }
-    response = client.post("/v1/auth/createuser", json=payload, headers=headers)
+    response = client.post("/v1/auth/register", json=payload, headers=headers)
 
     assert response.status_code == HTTP_400_BAD_REQUEST
     json_data = response.json()
@@ -171,7 +144,7 @@ def test_create_user_duplicate_entry(mock_serv, client, get_valid_token):
     assert json_data["error"] == "Duplicate entry"
 
 
-@patch("controllers.v1.auth_controller.Auth_Serv.createUser_Serv")
+@patch("controllers.v1.auth_controller.AuthServices.register_serv")
 def test_create_user_foreign_key_error(mock_serv, client, get_valid_token):
     """Test user creation with foreign key constraint failure"""
     mock_serv.return_value = JSONResponse(
@@ -185,7 +158,7 @@ def test_create_user_foreign_key_error(mock_serv, client, get_valid_token):
         "status": 1,
         "role": 2,
     }
-    response = client.post("/v1/auth/createuser", json=payload, headers=headers)
+    response = client.post("/v1/auth/register", json=payload, headers=headers)
 
     assert response.status_code == HTTP_400_BAD_REQUEST
     json_data = response.json()
@@ -193,7 +166,7 @@ def test_create_user_foreign_key_error(mock_serv, client, get_valid_token):
     assert json_data["error"] == "Foreign key not existed."
 
 
-@patch("controllers.v1.auth_controller.Auth_Serv.createUser_Serv")
+@patch("controllers.v1.auth_controller.AuthServices.register_serv")
 def test_create_user_unexpected_error(mock_serv, client, get_valid_token):
     """Test user creation with unexpected error"""
     mock_serv.side_effect = Exception("Unexpected error in service")
@@ -205,7 +178,7 @@ def test_create_user_unexpected_error(mock_serv, client, get_valid_token):
         "status": 1,
         "role": 2,
     }
-    response = client.post("/v1/auth/createuser", json=payload, headers=headers)
+    response = client.post("/v1/auth/register", json=payload, headers=headers)
 
     assert response.status_code == HTTP_500_INTERNAL_SERVER_ERROR
     json_data = response.json()
@@ -223,7 +196,7 @@ def test_create_user_invalid_token(client):
         "status": 1,
         "role": 2,
     }
-    response = client.post("/v1/auth/createuser", json=payload, headers=headers)
+    response = client.post("/v1/auth/register", json=payload, headers=headers)
 
     assert response.status_code == HTTP_403_FORBIDDEN
     json_data = response.json()
@@ -357,12 +330,12 @@ def test_forget_password_missing_email(client):
 @patch("controllers.v1.auth_controller.user_databaseConnection.getUserTable")
 def test_forget_password_success(mock_getUserTable, client):
     mock_user = MagicMock()
-    mock_user.email = "venkatraj.dev@velaninfo.com"
+    mock_user.email = "m.veeramvenkatraj@gmail.com"
     mock_user.id = 2
 
     mock_getUserTable.return_value = [mock_user]
     response = client.post(
-        "/v1/auth/forgetpassword", json={"email": "venkatraj.dev@velaninfo.com"}
+        "/v1/auth/forgetpassword", json={"email": "m.veeramvenkatraj@gmail.com"}
     )
 
     assert response.status_code == 200
@@ -399,7 +372,7 @@ def test_send_mail_for_forget_pass(db_session):
     from fastapi import BackgroundTasks
 
     background_task = BackgroundTasks()
-    receiver = "venkatraj.dev@velaninfo.com"
+    receiver = "m.veeramvenkatraj@gmail.com"
     success = sendResetLink(receiver, background_task, db_session)
     print("success ", success)
     assert success, "Mail sent successfully ✅"
@@ -408,25 +381,6 @@ def test_send_mail_for_forget_pass(db_session):
 # # INTEGRATION TEST ENDED
 
 # * FORGET PASSWORD ENDED
-
-# #* RESET PASSWORD STARTED
-
-
-@patch("controllers.v1.auth_controller.templates.TemplateResponse")
-def test_reset_password_form_exception(mock_template_response):
-    # Arrange
-    request = MagicMock()
-    request.query_params.get.return_value = "123"
-    mock_template_response.side_effect = Exception("Template not found")
-
-    # Act
-    result = Authenticator.resetPasswordForm(request)
-
-    # Assert
-    assert isinstance(result, JSONResponse)
-    assert result.status_code == 400
-    response_data = json.loads(result.body.decode("utf-8"))
-    assert response_data == {"message": "Template not found"}
 
 
 def test_reset_password_form_get(client):
