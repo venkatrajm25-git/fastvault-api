@@ -7,15 +7,32 @@ import logging
 from dao.v1.perm_dao import Permissions_DBConn
 
 # Configure rotating file handler
-log_handler = RotatingFileHandler(
-    "logs/v1/perm_services.log", maxBytes=5 * 1024 * 1024, backupCount=5
-)
-log_handler.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-log_handler.setFormatter(formatter)
+import os
+import logging
+from logging.handlers import RotatingFileHandler
 
+# Detect environment
+is_render = os.getenv("RENDER", "false").lower() == "true"
+
+# Create logger
 perm_logger = logging.getLogger("perm_services")
 perm_logger.setLevel(logging.INFO)
+
+# Common formatter
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+
+if is_render:
+    # ✅ Render → Console logging
+    log_handler = logging.StreamHandler()
+else:
+    # ✅ Local → File logging
+    log_dir = "logs/v1"
+    os.makedirs(log_dir, exist_ok=True)
+    log_handler = RotatingFileHandler(
+        f"{log_dir}/perm_services.log", maxBytes=5 * 1024 * 1024, backupCount=5
+    )
+
+log_handler.setFormatter(formatter)
 perm_logger.addHandler(log_handler)
 
 

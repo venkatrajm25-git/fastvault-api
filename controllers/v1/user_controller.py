@@ -5,15 +5,32 @@ from fastapi.responses import JSONResponse
 import logging
 
 
-log_handler = RotatingFileHandler(
-    "logs/v1/user_controller.log", maxBytes=5 * 1024 * 1024, backupCount=5
-)
-log_handler.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-log_handler.setFormatter(formatter)
+import os
 
+
+# Detect if running on Render
+is_render = os.getenv("RENDER", "false").lower() == "true"
+
+# Create the logger
 user_logger = logging.getLogger("user_logger")
 user_logger.setLevel(logging.INFO)
+
+# Formatter for all logs
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+
+if is_render:
+    # ✅ Render environment → logs shown in Render dashboard
+    log_handler = logging.StreamHandler()
+else:
+    # ✅ Local environment → logs saved to file
+    log_dir = "logs/v1"
+    os.makedirs(log_dir, exist_ok=True)  # this prevents FileNotFoundError
+
+    log_handler = RotatingFileHandler(
+        f"{log_dir}/user_controller.log", maxBytes=5 * 1024 * 1024, backupCount=5
+    )
+
+log_handler.setFormatter(formatter)
 user_logger.addHandler(log_handler)
 
 

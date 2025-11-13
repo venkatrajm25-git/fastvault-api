@@ -8,20 +8,36 @@ from dao.v1.user_dao import user_databaseConnection
 import logging
 from utils.v1.utility import generate_reset_token, sendResetLink
 
-# from utils.v1.utility import sendResetLink
+import os
+import logging
 from logging.handlers import RotatingFileHandler
+from utils.v1.utility import generate_reset_token, sendResetLink
 
-log_handler = RotatingFileHandler(
-    "logs/v1/auth_controller.log", maxBytes=5 * 1024 * 1024, backupCount=5
-)  # 5MB max per file, keeps 5 backups
-log_handler.setLevel(logging.INFO)
-formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
-log_handler.setFormatter(formatter)
+# Check if running on Render or local
+is_render = os.getenv("RENDER", "false").lower() == "true"
 
-# Get logger and attach handler
+# Create logger
 auth_logger = logging.getLogger("auth_logger")
 auth_logger.setLevel(logging.INFO)
-auth_logger.addHandler(log_handler)
+
+# Common formatter
+formatter = logging.Formatter("%(asctime)s - %(levelname)s - %(message)s")
+
+if is_render:
+    # ✅ Render environment: use console logging
+    log_handler = logging.StreamHandler()
+    log_handler.setFormatter(formatter)
+    auth_logger.addHandler(log_handler)
+else:
+    # ✅ Local environment: use file logging
+    log_dir = "logs/v1"
+    os.makedirs(log_dir, exist_ok=True)
+
+    log_handler = RotatingFileHandler(
+        f"{log_dir}/auth_controller.log", maxBytes=5 * 1024 * 1024, backupCount=5
+    )
+    log_handler.setFormatter(formatter)
+    auth_logger.addHandler(log_handler)
 
 
 class AuthController:
