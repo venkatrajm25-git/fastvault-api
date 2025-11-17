@@ -1,47 +1,48 @@
-from logging.config import fileConfig
-from sqlalchemy import create_engine, pool
-from alembic import context
 import os
+from logging.config import fileConfig
 from dotenv import load_dotenv
 
-# Load environment variables from .env
+from sqlalchemy import engine_from_config
+from sqlalchemy import pool
+from alembic import context
+
+# Import your Base and all models
+from model.v1.base_env import Base
+from model.v1 import (
+    audit_log,
+    module_model,
+    permission_model,
+    role_model,
+    user_model,
+    user_session_model,
+)
+
+# Load environment variables
 load_dotenv()
 
 # Alembic Config object
 config = context.config
 
-# Logging setup
+# Override DB URL from .env
+database_url = os.getenv("DATABASE_URL")
+if not database_url:
+    raise Exception("DATABASE_URL not found in .env file")
+
+config.set_main_option("sqlalchemy.url", database_url)
+
+# Logging config
 if config.config_file_name is not None:
     fileConfig(config.config_file_name)
 
-from model.v1 import (
-    audit_log,
-    user_model,
-    module_model,
-    permission_model,
-    role_model,
-    user_session_model,
-)
-
-# Import your SQLAlchemy Base metadata (adjust this path)
-from model.v1.base_env import Base
-
+# Target metadata for migrations
 target_metadata = Base.metadata
-
-# Get DATABASE_URL dynamically from .env
-DATABASE_URL = os.getenv("DATABASE_URL")
-
-if not DATABASE_URL:
-    raise Exception("❌ DATABASE_URL not found in .env file")
-
-# Override the URL inside alembic.ini dynamically
-config.set_main_option("sqlalchemy.url", DATABASE_URL)
 
 
 def run_migrations_offline() -> None:
     """Run migrations in 'offline' mode."""
+    url = config.get_main_option("sqlalchemy.url")
     context.configure(
-        url=DATABASE_URL,
+        url=url,
         target_metadata=target_metadata,
         literal_binds=True,
         dialect_opts={"paramstyle": "named"},
@@ -53,7 +54,11 @@ def run_migrations_offline() -> None:
 
 def run_migrations_online() -> None:
     """Run migrations in 'online' mode."""
-    connectable = create_engine(DATABASE_URL, poolclass=pool.NullPool)
+    connectable = engine_from_config(
+        config.get_section(config.config_ini_section, {}),
+        prefix="sqlalchemy.",
+        poolclass=pool.NullPool,
+    )
 
     with connectable.connect() as connection:
         context.configure(connection=connection, target_metadata=target_metadata)

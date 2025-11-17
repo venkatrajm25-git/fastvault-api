@@ -76,7 +76,7 @@ def seed_user_permissions(yaml_data, db):
         for entry in all_existing:
             key = (entry.user_id, entry.module_id, entry.permission_id)
             if key not in valid_permissions:
-                entry.is_deleted = True
+                entry.is_deleted = 1
                 print(
                     f"🗑️ Marked deleted: user_id={entry.user_id}, module_id={entry.module_id}, permission_id={entry.permission_id}"
                 )

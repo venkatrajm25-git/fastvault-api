@@ -1,17 +1,19 @@
 import os
 
+from config.v1.env_loader import load_environment
+
+load_environment()
+
 
 class Config:
     # DB
-    DB_USER = os.getenv("USER", "postgres")
-    DB_PASSWORD = os.getenv("PWD", "81900Vr#")
-    DB_HOST = os.getenv("HOST", "localhost")
-    DB_PORT = os.getenv("PORT", 5432)
-    DB_DBNAME = os.getenv("DBNAME", "fastvault_dev")
+    DB_USER = os.getenv("USER")
+    DB_PASSWORD = os.getenv("PWD")
+    DB_HOST = os.getenv("HOST")
+    DB_PORT = os.getenv("PORT")
+    DB_DBNAME = os.getenv("DBNAME")
 
-    DATABASE_URL = (
-        f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_DBNAME}"
-    )
+    DATABASE_URL = os.getenv("DATABASE_URL")
 
     # JWT
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
@@ -25,15 +27,13 @@ class Config:
 
 class TestingConfig:
     # DB
-    DB_USER = os.getenv("USER", "postgres")
-    DB_PASSWORD = os.getenv("PWD", "81900Vr#")
-    DB_HOST = os.getenv("HOST", "localhost")
-    DB_PORT = os.getenv("PORT", 5432)
-    DB_DBNAME = os.getenv("DBNAME", "fastvault_test")
+    DB_USER = os.getenv("USER")
+    DB_PASSWORD = os.getenv("PWD")
+    DB_HOST = os.getenv("HOST")
+    DB_PORT = os.getenv("PORT")
+    DB_DBNAME = os.getenv("DBNAME")
 
-    DATABASE_URL = (
-        f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_DBNAME}"
-    )
+    DATABASE_URL = os.getenv("DATABASE_URL")
 
     # JWT
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")
@@ -43,15 +43,13 @@ class TestingConfig:
 
 class ProductionConfig:
     # DB
-    DB_USER = os.getenv("USER", "postgres")
-    DB_PASSWORD = os.getenv("PWD", "81900Vr#")
-    DB_HOST = os.getenv("HOST", "localhost")
-    DB_PORT = os.getenv("PORT", 5432)
-    DB_DBNAME = os.getenv("DBNAME", "fastvault_prod")
+    DB_USER = os.getenv("USER")
+    DB_PASSWORD = os.getenv("PWD")
+    DB_HOST = os.getenv("HOST")
+    DB_PORT = os.getenv("PORT")
+    DB_DBNAME = os.getenv("DBNAME")
 
-    DATABASE_URL = (
-        f"postgresql://{DB_USER}:{DB_PASSWORD}@{DB_HOST}:{DB_PORT}/{DB_DBNAME}"
-    )
+    DATABASE_URL = os.getenv("DATABASE_URL")
 
     # JWT
     JWT_SECRET_KEY = os.getenv("JWT_SECRET_KEY")

@@ -80,7 +80,7 @@ def seed_role_permissions(yaml_data, db: Session):
         for entry in all_existing:
             key = (entry.role_id, entry.module_id, entry.permission_id)
             if key not in valid_permissions:
-                entry.is_deleted = True
+                entry.is_deleted = 1
                 print(
                     f"🗑️ Marked deleted: role_id={entry.role_id}, module_id={entry.module_id}, permission_id={entry.permission_id}"
                 )
