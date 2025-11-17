@@ -78,9 +78,7 @@ def test_update_role_not_found(db_session):
     dataList = [invalid_role_id, "TestRole", 1, 1]
     accept_language = "en"
 
-    response = asyncio.run(
-        Role_Services.updateRole_serv(dataList, db_session, accept_language)
-    )
+    response = asyncio.run(Role_Services.updateRole_serv(dataList, db_session))
     assert isinstance(response, JSONResponse)
     assert response.status_code == 400
     assert response.body is not None

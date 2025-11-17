@@ -11,7 +11,7 @@ from logging.handlers import RotatingFileHandler
 # Detect environment
 is_render = os.getenv("RENDER", "false").lower() == "true"
 
-# Create logger
+# Create perm_logger
 perm_logger = logging.getLogger("user_services")
 perm_logger.setLevel(logging.INFO)
 
@@ -32,13 +32,14 @@ else:
 log_handler.setFormatter(formatter)
 perm_logger.addHandler(log_handler)
 
+
 class user_services:
     @staticmethod
     async def getAlluser_serv(userID, db: Session):
         """
         Retrieve all users or a specific user by userID.
         """
-        logger.info("Fetching user(s) data.")  # Logging the operation
+        perm_logger.info("Fetching user(s) data.")  # Logging the operation
         users = []  # Initializing an empty list to store user data
 
         dbData = user_databaseConnection.getUserTable(
@@ -63,7 +64,7 @@ class user_services:
                 }
                 for row in dbData
             ]
-            logger.info("Returning all users data.")
+            perm_logger.info("Returning all users data.")
             return JSONResponse(
                 content={
                     "success": True,
@@ -76,7 +77,7 @@ class user_services:
         # Verify if the provided userID is valid
         # verification = await verifyID(userID, db)
         # if verification.status_code == 400:
-        #     logger.warning(f"User verification failed for ID: {userID}")
+        #     perm_logger.warning(f"User verification failed for ID: {userID}")
         #     return verification
 
         # Fetch user data for the provided userID
@@ -95,7 +96,7 @@ class user_services:
             }
             for row in data
         ]
-        logger.info(f"Returning user data for userID: {userID}")
+        perm_logger.info(f"Returning user data for userID: {userID}")
         if users:
             return JSONResponse(
                 content={
@@ -119,7 +120,7 @@ class user_services:
         Update user details.
         """
         id, username, status, role, modifiedby = dataList
-        logger.info(f"Attempting to update user: {id}")
+        perm_logger.info(f"Attempting to update user: {id}")
 
         # Fetch user by ID
         data = next(
@@ -127,7 +128,7 @@ class user_services:
             None,
         )
         if not data:
-            logger.warning(f"No user found with ID: {id}")
+            perm_logger.warning(f"No user found with ID: {id}")
             return JSONResponse(
                 content={
                     "success": False,
@@ -152,7 +153,7 @@ class user_services:
 
         success = user_databaseConnection.updateUser(id, updateUser, dataList, db)
         if success:
-            logger.info(f"User {id} updated successfully.")
+            perm_logger.info(f"User {id} updated successfully.")
             updated_data = {
                 "username": username if "username" in updateUser else data.username,
                 "status": status if "status" in updateUser else data.status,

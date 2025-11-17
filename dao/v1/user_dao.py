@@ -14,18 +14,18 @@ class user_databaseConnection:
                 newUser = User(
                     id=user_id,
                     email=email,
-                    pwd=hashedPwd,
-                    username=username,
+                    password=hashedPwd,
+                    user_name=username,
                     status=status,
                     created_by=created_by_email,
-                    role=role,
+                    role_id=role,
                 )
             else:
                 newUser = User(
                     id=user_id,
                     email=email,
-                    pwd=hashedPwd,
-                    username=username,
+                    password=hashedPwd,
+                    user_name=username,
                     status=status,
                     created_by=created_by_email,
                 )

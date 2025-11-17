@@ -16,7 +16,7 @@ router = APIRouter()
 @router.get("/getrole")
 async def get_role(
     role_id: int = Query(None),
-    current_user: dict = Depends(token_required(required_permission=[(1, 2)])),
+    current_user: dict = Depends(token_required(required_permission=(1, 2))),
     db: Session = Depends(getDBConnection),
 ):
     return await RoleController.getRole(role_id, db)
@@ -31,7 +31,7 @@ async def get_role(
 )
 async def add_role(
     request: Request,
-    current_user: dict = Depends(token_required(required_permission=[(1, 1)])),
+    current_user: dict = Depends(token_required(required_permission=(1, 1))),
     db: Session = Depends(getDBConnection),
 ):
     data = await request.json()
@@ -47,7 +47,7 @@ async def add_role(
 )
 async def update_role(
     data: UpdateRole,
-    current_user: dict = Depends(token_required(required_permission=[(1, 3)])),
+    current_user: dict = Depends(token_required(required_permission=(1, 3))),
     db: Session = Depends(getDBConnection),
 ):
     return await RoleController.updateRole(data, db, current_user)
@@ -62,7 +62,7 @@ async def update_role(
 )
 async def delete_role(
     role_id: int = Query(...),
-    current_user: dict = Depends(token_required(required_permission=[(1, 4)])),
+    current_user: dict = Depends(token_required(required_permission=(1, 4))),
     db: Session = Depends(getDBConnection),
 ):
 

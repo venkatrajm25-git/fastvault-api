@@ -18,7 +18,7 @@ class Role_DBConn:
         """Creates a new role in the database."""
         try:
             newRole = Role(
-                rolename=dataList[0],
+                role_name=dataList[0],
                 status=dataList[1],
                 created_by=dataList[2],
                 is_deleted=0,  # Explicitly set is_deleted to 0 for new roles
@@ -47,7 +47,7 @@ class Role_DBConn:
             db.rollback()
             return JSONResponse(
                 content={
-                    "success": "false",
+                    "success": False,
                     "message": f"Role creation failed: {str(e)}",
                 },
                 status_code=400,

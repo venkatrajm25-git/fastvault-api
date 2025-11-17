@@ -1,4 +1,5 @@
 import redis
+import os
 from typing import Optional
 import jwt, time
 from config.v1.config import Config
@@ -42,4 +43,6 @@ def blacklist_token(token: str):
 
 def is_token_blacklisted(jti: str) -> bool:
     """Check if token is blacklisted."""
+    if os.getenv("FASTAPI_ENV").lower() == "testing":
+        return False
     return redis_get(f"bl:{jti}") is not None

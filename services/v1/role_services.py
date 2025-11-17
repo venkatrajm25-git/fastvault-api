@@ -10,7 +10,7 @@ from logging.handlers import RotatingFileHandler
 # Detect environment
 is_render = os.getenv("RENDER", "false").lower() == "true"
 
-# Create logger
+# Create perm_logger
 perm_logger = logging.getLogger("role_services")
 perm_logger.setLevel(logging.INFO)
 
@@ -55,7 +55,7 @@ class Role_Services:
                 for row in rows
             ]
 
-        logger.info(
+        perm_logger.info(
             f"Fetching {'all roles' if not role_id else f'role with ID {role_id}'}"
         )
 
@@ -83,7 +83,7 @@ class Role_Services:
     async def updateRole_serv(dataList, db):
         """Updates role details including rolename, status, and modified_by."""
         role_id, rolename, status, modified_by = dataList
-        logger.info(f"Updating role details for role_id: {role_id}")
+        perm_logger.info(f"Updating role details for role_id: {role_id}")
 
         rolename = rolename or None
         status = status or None
@@ -92,7 +92,7 @@ class Role_Services:
             (r for r in Role_DBConn.getRoleData(db) if r.id == role_id), None
         )
         if not existing_role:
-            logger.warning(f"No data found for role_id: {role_id}")
+            perm_logger.warning(f"No data found for role_id: {role_id}")
             return JSONResponse(
                 content={
                     "success": False,
@@ -117,7 +117,7 @@ class Role_Services:
 
         # Step 6: Return Response
         if success:
-            logger.info(f"Role ID {role_id} updated successfully.")
+            perm_logger.info(f"Role ID {role_id} updated successfully.")
             return JSONResponse(
                 content={
                     "success": True,
@@ -136,7 +136,7 @@ class Role_Services:
                 status_code=200,
             )
 
-        logger.error(f"Failed to update role_id: {role_id}")
+        perm_logger.error(f"Failed to update role_id: {role_id}")
         return JSONResponse(
             content={
                 "success": False,

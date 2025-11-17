@@ -29,8 +29,9 @@ def token_required(required_role: str = None, required_permission: tuple = None)
             user_id = payload.get("user_id")
             role_id = payload.get("role_id")
             email = payload.get("email")
-            username = payload.get("username")
-        except JWTError:
+            username = payload.get("user_name")
+        except JWTError as e:
+            print("🔴 DEBUG: JWTError:", str(e))
             raise HTTPException(status_code=401, detail="Invalid or expired token")
 
         # 3️⃣ Check user exists
@@ -83,7 +84,7 @@ def token_required(required_role: str = None, required_permission: tuple = None)
         return {
             "user_id": user_id,
             "email": email,
-            "username": username,
+            "user_name": username,
             "role": role_name,
         }
 

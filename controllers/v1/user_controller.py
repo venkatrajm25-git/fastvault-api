@@ -70,7 +70,7 @@ class UserController:
             user_logger.info("updateUser successful")
             return result
         except Exception as e:
-            user_logger.error("updateUser failed: ", str(e))
+            user_logger.error(f"updateUser failed: {str(e)}")
             return JSONResponse(
                 content={"message": str(e)},
                 status_code=400,

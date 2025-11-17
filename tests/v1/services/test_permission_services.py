@@ -49,8 +49,7 @@ def test_no_permission_data_found(db_session):
 
     # Call the actual service function
     response = Perm_Serv.getSingleUserPermission_Serv(
-        user_id=1001,
-        db=db_session,
+        user_id=1001, db=db_session, accept_language="en"
     )
 
     # Now this will be a JSONResponse, not a list
@@ -101,8 +100,7 @@ def test_get_single_user_permission_success(monkeypatch, db_session):
 
     # Call the service
     result = Perm_Serv.getSingleUserPermission_Serv(
-        user_id=10000,
-        db=db_session,
+        user_id=10000, db=db_session, accept_language="en"
     )
 
     # Validate result structure
@@ -119,7 +117,9 @@ def test_get_single_user_permission_not_found(monkeypatch, db_session):
     monkeypatch.setattr(UserPerm_DBConn, "getPermissionsOfUser", lambda user_id, db: [])
 
     # Call the service
-    response = Perm_Serv.getSingleUserPermission_Serv(user_id=1001, db=db_session)
+    response = Perm_Serv.getSingleUserPermission_Serv(
+        user_id=1001, db=db_session, accept_language="en"
+    )
 
     # Validate that a JSONResponse is returned
     assert isinstance(response, JSONResponse)

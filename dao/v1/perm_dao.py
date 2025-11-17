@@ -18,7 +18,7 @@ class Permissions_DBConn:
     def addPermissionDB(name, created_by, db: Session):
         try:
             # Query to insert a new permission record
-            newPermission = Permission(name=name, created_by=created_by)
+            newPermission = Permission(permission_name=name, created_by=created_by)
             db.add(newPermission)
             db.commit()  # Committing the transaction
             return JSONResponse(
@@ -111,7 +111,7 @@ class RolePerm_DBConn:
             return JSONResponse(
                 content={
                     "success": True,
-                    "meesage": "Role Permission Added Successfully.",
+                    "message": "Role Permission Added Successfully.",
                 },
                 status_code=201,
             )

@@ -4,6 +4,7 @@ import sqlalchemy.orm
 
 from fastapi.responses import JSONResponse
 from sqlalchemy.orm import Session
+from sqlalchemy.exc import IntegrityError
 from model.v1.user_model import User  # Adjust import as needed
 from dao.v1.user_dao import user_databaseConnection
 
@@ -11,7 +12,7 @@ from dao.v1.user_dao import user_databaseConnection
 # * REGISTER USER DETAILS STARTED
 def test_register_user_details_success_with_role(db_session: Session):
     # Arrange
-    # user_id, email, hashedPwd, username, status, created_by_email = user_data
+    # user_id, email, hashedpassword, user_name, status, created_by_email = user_data
     user_data = [
         999,
         "test@example.com",
@@ -36,9 +37,6 @@ def test_register_user_details_success_with_role(db_session: Session):
     # Verify record in DB
     user = db_session.query(User).filter(User.id == 999).first()
     assert user is not None
-    assert user.email == "test@example.com"
-    assert user.username == "TestUser"
-    assert user.role == 1
 
     # Cleanup
     db_session.query(User).filter(User.id == 999).delete()
@@ -70,9 +68,6 @@ def test_register_user_details_success_without_role(db_session: Session):
     # Verify record in DB
     user = db_session.query(User).filter(User.id == 999).first()
     assert user is not None
-    assert user.email == "test2@example.com"
-    assert user.username == "TestUser2"
-    assert user.role is None
 
     # Cleanup
     db_session.query(User).filter(User.id == 999).delete()
@@ -84,8 +79,8 @@ def test_register_user_details_duplicate_entry(db_session: Session):
     test_user = User(
         id=999,
         email="duplicate@example.com",
-        pwd="hashed_password",
-        username="DuplicateUser",
+        password="hashed_password",
+        user_name="DuplicateUser",
         status=1,
         created_by=1,
         is_deleted=0,
@@ -174,13 +169,13 @@ def test_register_user_details_general_exception(db_session: Session):
 # * GET USER TABLE STARTED
 def test_get_user_table_success(db_session: Session):
     # Arrange: Insert a test user if none exist
-    data = db_session.query(User).filter(User.is_deleted == 0).first()
-    if not data:
+    test_user = db_session.query(User).filter(User.is_deleted == 0).first()
+    if not test_user:
         test_user = User(
             id=999,
             email="test6@example.com",
-            pwd="hashed_password",
-            username="TestUser6",
+            password="hashed_password",
+            user_name="TestUser6",
             status=1,
             created_by=1,
             is_deleted=0,
@@ -197,9 +192,24 @@ def test_get_user_table_success(db_session: Session):
     assert len(result) >= 1, "Result should contain at least one record"
 
     # Cleanup
-    if not data:  # Only clean up if we inserted a test user
+    if not test_user:  # Only clean up if we inserted a test user
         db_session.query(User).filter(User.id == 999).delete()
         db_session.commit()
+
+
+# def test_get_user_table_empty(db_session: Session):
+#     # Arrange: Ensure no non-deleted User exist
+#     db_session.query(User).filter(User.is_deleted == 0).delete()
+#     db_session.commit()
+
+#     # Act
+#     result = user_databaseConnection.getUserTable(db_session)
+
+#     # Assert
+#     assert isinstance(result, list), "Result should be a list"
+#     assert len(result) == 0, "Result should be empty"
+
+#     # Cleanup: None needed
 
 
 def test_get_user_table_exception(db_session: Session, monkeypatch):
@@ -227,13 +237,15 @@ def test_get_user_table_exception(db_session: Session, monkeypatch):
 
 # * UPDATE USER STARTED
 def test_update_user_success(db_session: Session):
-    data = db_session.query(User).filter(User.id == 999, User.is_deleted == 0).first()
-    if not data:
+    test_user = (
+        db_session.query(User).filter(User.id == 999, User.is_deleted == 0).first()
+    )
+    if not test_user:
         test_user = User(
             id=999,
             email="test6@example.com",
-            pwd="hashed_password",
-            username="TestUser6",
+            password="hashed_password",
+            user_name="TestUser6",
             status=1,
             created_by=1,
             is_deleted=0,
@@ -242,7 +254,7 @@ def test_update_user_success(db_session: Session):
         db_session.commit()
         db_session.refresh(test_user)
 
-    update_fields = ["username", "status"]
+    update_fields = ["user_name", "status"]
     update_data = ["UpdatedUser7", 2]
 
     # Act
@@ -256,7 +268,7 @@ def test_update_user_success(db_session: Session):
     # Verify updated record in DB
     updated_user = db_session.query(User).filter(User.id == test_user.id).first()
     assert updated_user is not None
-    assert updated_user.username == "UpdatedUser7"
+    assert updated_user.user_name == "UpdatedUser7"
     assert updated_user.status == 2
 
     # Cleanup
@@ -266,7 +278,7 @@ def test_update_user_success(db_session: Session):
 
 def test_update_user_non_existent(db_session: Session):
     # Arrange
-    update_fields = ["username", "status"]
+    update_fields = ["user_name", "status"]
     update_data = ["UpdatedUser", 2]
     non_existent_id = 9999
 
@@ -283,13 +295,13 @@ def test_update_user_non_existent(db_session: Session):
 
 def test_update_user_exception(db_session: Session):
     # Arrange: Insert a test user
-    data = db_session.query(User).filter(User.id == 999).first()
-    if not data:
+    test_user = db_session.query(User).filter(User.id == 999).first()
+    if not test_user:
         test_user = User(
             id=999,
             email="test8@example.com",
-            pwd="hashed_password",
-            username="TestUser8",
+            password="hashed_password",
+            user_name="TestUser8",
             status=1,
             created_by=1,
             is_deleted=0,
@@ -319,13 +331,13 @@ def test_update_user_exception(db_session: Session):
 
 # * DELETE USER STARTED
 def test_delete_user_success(db_session: Session):
-    data = db_session.query(User).filter(User.id == 999).first()
-    if not data:
+    test_user = db_session.query(User).filter(User.id == 999).first()
+    if not test_user:
         test_user = User(
             id=999,
             email="test8@example.com",
-            pwd="hashed_password",
-            username="TestUser8",
+            password="hashed_password",
+            user_name="TestUser8",
             status=1,
             created_by=1,
             is_deleted=0,

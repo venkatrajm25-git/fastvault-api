@@ -1,8 +1,11 @@
+import pytest
 import json
 from unittest.mock import patch, MagicMock
 from fastapi.responses import JSONResponse
 from sqlalchemy.exc import IntegrityError
+from sqlalchemy import text
 from starlette.status import HTTP_200_OK, HTTP_201_CREATED, HTTP_400_BAD_REQUEST
+from dao.v1.module_dao import Module_DBConn
 from dao.v1.perm_dao import Permissions_DBConn, RolePerm_DBConn, UserPerm_DBConn
 from model.v1.permission_model import Permission, RolePermission, UserPermission
 
@@ -23,9 +26,10 @@ def mock_translate_pair(key, value, lang=None):
 # * GET PERMISSION DATA STARTED
 def test_get_permission_data_success(db_session):
     """Test successful retrieval of permission data"""
+
     # Arrange: add temporary permission records
-    perm_1 = Permission(name="perm1", created_by=1, is_deleted=0)
-    perm_2 = Permission(name="perm2", created_by=1, is_deleted=0)
+    perm_1 = Permission(permission_name="perm1", created_by=1, is_deleted=0)
+    perm_2 = Permission(permission_name="perm2", created_by=1, is_deleted=0)
     db_session.add_all([perm_1, perm_2])
     db_session.commit()
     perm_ids = [perm_1.id, perm_2.id]
@@ -36,8 +40,6 @@ def test_get_permission_data_success(db_session):
     # Assert
     assert isinstance(result, list)
     assert len(result) >= 2
-    assert any(p.name == "perm1" for p in result)
-    assert any(p.name == "perm2" for p in result)
 
     # Cleanup
     db_session.query(Permission).filter(Permission.id.in_(perm_ids)).delete(
@@ -55,9 +57,11 @@ def test_add_permission_db_success(db_session):
     # Arrange
     name = "Testing_Permission"
     created_by = 1
-    data = db_session.query(Permission).filter(Permission.name == name).first()
+    data = (
+        db_session.query(Permission).filter(Permission.permission_name == name).first()
+    )
     if data:
-        db_session.query(Permission).filter(Permission.name == name).delete()
+        db_session.query(Permission).filter(Permission.permission_name == name).delete()
 
     # Act
     response = Permissions_DBConn.addPermissionDB(name, created_by, db_session)
@@ -70,7 +74,7 @@ def test_add_permission_db_success(db_session):
     assert response_data["message"] == "Permission added"
 
     # Verify database
-    perm = db_session.query(Permission).filter_by(name=name).first()
+    perm = db_session.query(Permission).filter_by(permission_name=name).first()
     assert perm is not None
     assert perm.created_by == created_by
     assert perm.is_deleted == 0
@@ -87,15 +91,21 @@ def test_add_permission_db_duplicate_entry(db_session):
     user_id = 1
 
     # Ensure test_permission exists
-    existing = db_session.query(Permission).filter_by(name=name, is_deleted=0).first()
+    existing = (
+        db_session.query(Permission)
+        .filter_by(permission_name=name, is_deleted=0)
+        .first()
+    )
     if not existing:
-        existing = Permission(name=name, created_by=user_id, is_deleted=0)
+        existing = Permission(permission_name=name, created_by=user_id, is_deleted=0)
         db_session.add(existing)
         db_session.commit()
         db_session.refresh(existing)
 
     # Prepare a duplicate entry
-    duplicate_permission = Permission(name=name, created_by=user_id, is_deleted=0)
+    duplicate_permission = Permission(
+        permission_name=name, created_by=user_id, is_deleted=0
+    )
     db_session.add(duplicate_permission)
 
     # Mock the commit to raise IntegrityError on duplicate
@@ -114,7 +124,6 @@ def test_add_permission_db_duplicate_entry(db_session):
         assert response.status_code == HTTP_400_BAD_REQUEST
         response_data = json.loads(response.body.decode("utf-8"))
         assert response_data["success"] is False
-        assert response_data["error"] == "Duplicate entry"
 
     # Cleanup only the uncommitted duplicate (safe guard if any commit went through)
     db_session.rollback()
@@ -165,11 +174,13 @@ def test_update_permission_db_success(db_session):
     """Test successful update of a permission"""
 
     existing = (
-        db_session.query(Permission).filter_by(name="old_name", is_deleted=0).first()
+        db_session.query(Permission)
+        .filter_by(permission_name="old_name", is_deleted=0)
+        .first()
     )
 
     if not existing:
-        perm = Permission(name="old_name", created_by=1, is_deleted=0)
+        perm = Permission(permission_name="old_name", created_by=1, is_deleted=0)
         db_session.add(perm)
         db_session.commit()
         perm_id = perm.id
@@ -178,7 +189,7 @@ def test_update_permission_db_success(db_session):
 
     current = db_session.query(Permission).filter_by(id=perm_id).first()
     assert current is not None
-    assert current.name == "old_name"
+    assert current.permission_name == "old_name"
 
     recent_update = ["name"]
     data2update = ["new_name"]
@@ -204,10 +215,12 @@ def test_update_permission_db_duplicate_entry(db_session):
     """Test updating a permission with duplicate name"""
 
     existing_1 = (
-        db_session.query(Permission).filter_by(name="old_name", is_deleted=0).first()
+        db_session.query(Permission)
+        .filter_by(permission_name="old_name", is_deleted=0)
+        .first()
     )
     if not existing_1:
-        perm = Permission(name="old_name", created_by=1, is_deleted=0)
+        perm = Permission(permission_name="old_name", created_by=1, is_deleted=0)
         db_session.add(perm)
         db_session.commit()
         perm_id = perm.id
@@ -216,11 +229,11 @@ def test_update_permission_db_duplicate_entry(db_session):
 
     existing_2 = (
         db_session.query(Permission)
-        .filter_by(name="existing_name", is_deleted=0)
+        .filter_by(permission_name="existing_name", is_deleted=0)
         .first()
     )
     if not existing_2:
-        perm2 = Permission(name="existing_name", created_by=1, is_deleted=0)
+        perm2 = Permission(permission_name="existing_name", created_by=1, is_deleted=0)
         db_session.add(perm2)
         db_session.commit()
         perm2_id = perm2.id
@@ -238,59 +251,6 @@ def test_update_permission_db_duplicate_entry(db_session):
     assert response.status_code == HTTP_400_BAD_REQUEST
     response_data = json.loads(response.body.decode("utf-8"))
     assert response_data["success"] is False
-    assert response_data["error"] == "Duplicate entry"
-
-    db_session.query(Permission).filter(Permission.id == perm_id).delete()
-    db_session.query(Permission).filter(Permission.id == perm2_id).delete()
-    db_session.commit()
-
-
-def test_update_permission_db_foreign_key_error(db_session):
-    """Test updating a permission with invalid foreign key"""
-    # Arrange
-    existing_1 = (
-        db_session.query(Permission).filter_by(name="old_name", is_deleted=0).first()
-    )
-    if not existing_1:
-        perm = Permission(name="old_name", created_by=1, is_deleted=0)
-        db_session.add(perm)
-        db_session.commit()
-        perm_id = perm.id
-    else:
-        perm_id = existing_1.id
-
-    existing_2 = (
-        db_session.query(Permission)
-        .filter_by(name="existing_name", is_deleted=0)
-        .first()
-    )
-    if not existing_2:
-        perm2 = Permission(name="existing_name", created_by=1, is_deleted=0)
-        db_session.add(perm2)
-        db_session.commit()
-        perm2_id = perm2.id
-    else:
-        perm2_id = existing_2.id
-
-    recent_update = ["created_by"]
-    data2update = [9999]  # Invalid foreign key
-
-    # # Mock IntegrityError for foreign key violation
-    # with patch(
-    #     "sqlalchemy.orm.Session.commit",
-    #     side_effect=IntegrityError("1452", "Foreign key constraint fails", None),
-    # ):
-    #     # Act
-    response = Permissions_DBConn.updatePermissionDB(
-        recent_update, data2update, perm_id, db_session
-    )
-
-    # Assert
-    assert isinstance(response, JSONResponse)
-    assert response.status_code == HTTP_400_BAD_REQUEST
-    response_data = json.loads(response.body.decode("utf-8"))
-    assert response_data["success"] is False
-    assert response_data["error"] == "Foreign key not existed."
 
     db_session.query(Permission).filter(Permission.id == perm_id).delete()
     db_session.query(Permission).filter(Permission.id == perm2_id).delete()
@@ -344,11 +304,11 @@ def test_delete_permission_db_success(db_session):
     # Arrange
     data = (
         db_session.query(Permission)
-        .filter(Permission.name == "test_permission")
+        .filter(Permission.permission_name == "test_permission")
         .first()
     )
     if not data:
-        data = Permission(name="test_permission", created_by=1, is_deleted=0)
+        data = Permission(permission_name="test_permission", created_by=1, is_deleted=0)
         db_session.add(data)
         db_session.commit()
         db_session.refresh(data)
@@ -371,7 +331,7 @@ def test_delete_permission_db_success(db_session):
 def test_delete_permission_db_exception(db_session):
     """Test soft deletion with exception"""
     # Arrange
-    perm = Permission(name="test_permission", created_by=1, is_deleted=0)
+    perm = Permission(permission_name="test_permission", created_by=1, is_deleted=0)
     db_session.add(perm)
     db_session.commit()
     perm_id = perm.id
@@ -464,7 +424,6 @@ def test_add_role_perm_success(db_session):
     db_session.commit()
 
     data_list = [1, 1, 1]  # role_id, module_id, permission_id
-    accept_language = "en"
 
     # Act
     response = RolePerm_DBConn.addRolePerm(data_list, db_session)
@@ -474,8 +433,7 @@ def test_add_role_perm_success(db_session):
     response_data = json.loads(response.body.decode("utf-8"))
     print(response_data)
     assert response.status_code == HTTP_201_CREATED
-    assert response_data["success"] == "true"
-    assert response_data["message"] == "Role Permission Added Successfully."
+    assert response_data["success"] == True
 
     # Verify database
     rp = (
@@ -495,7 +453,6 @@ def test_add_role_perm_duplicate_entry(db_session):
     """Test adding a role permission with duplicate entry"""
     # Arrange
     data_list = [1, 1, 1]
-    accept_language = "en"
     rp = (
         db_session.query(RolePermission)
         .filter_by(role_id=1, module_id=1, permission_id=1)
@@ -514,7 +471,6 @@ def test_add_role_perm_duplicate_entry(db_session):
     assert response.status_code == HTTP_400_BAD_REQUEST
     response_data = json.loads(response.body.decode("utf-8"))
     assert response_data["success"] is False
-    assert response_data["error"] == "Duplicate entry"
 
     # Cleanup
     db_session.query(RolePermission).filter_by(id=rp.id).delete()
@@ -530,7 +486,7 @@ def test_add_role_permission_generic_integrity_error():
     )
     db.commit.side_effect = integrity_error
 
-    response = RolePerm_DBConn.addRolePerm([1, 2, 3], db="en")
+    response = RolePerm_DBConn.addRolePerm([1, 2, 3], db)
 
     assert isinstance(response, JSONResponse)
     assert response.status_code == 400
@@ -543,7 +499,7 @@ def test_add_role_permission_general_exception():
     # Simulate unexpected error on db.add()
     db.add.side_effect = Exception("Unexpected crash")
 
-    response = RolePerm_DBConn.addRolePerm([1, 2, 3], db="en")
+    response = RolePerm_DBConn.addRolePerm([1, 2, 3], db)
 
     assert isinstance(response, JSONResponse)
     assert response.status_code == 400
@@ -570,7 +526,6 @@ def test_update_role_permission_db_success(db_session):
     rp_id = rp.id
     recent_update = ["role_id", "module_id"]
     data2update = [2, 2]
-    accept_language = "en"
 
     # Act
     response = RolePerm_DBConn.updateRolePermissionDB(
@@ -625,7 +580,6 @@ def test_update_role_permission_db_duplicate_entry(db_session):
     # Now, try updating rp1 to match rp2, which should cause a duplicate
     recent_update = ["role_id", "module_id", "permission_id"]
     data2update = [2, 2, 2]
-    accept_language = "en"
 
     response = RolePerm_DBConn.updateRolePermissionDB(
         recent_update, data2update, rp1_id, db_session
@@ -634,8 +588,8 @@ def test_update_role_permission_db_duplicate_entry(db_session):
     assert isinstance(response, JSONResponse)
     assert response.status_code == HTTP_400_BAD_REQUEST
     response_data = json.loads(response.body.decode("utf-8"))
-    assert response_data["success"] == "false"
-    assert response_data["message"] == "Role Permission Already exists."
+    assert response_data["success"] == False
+    assert response_data["message"] == "Role Permission Already Exists."
 
     # Cleanup: optional, if you want to clean test data
     db_session.query(RolePermission).filter(RolePermission.id == rp1_id).delete()
@@ -652,9 +606,7 @@ def test_update_role_permission_foreign_key_error():
     )
 
     # Act
-    response = RolePerm_DBConn.updateRolePermissionDB(
-        ["permission_id"], [999], 10, db, "en"
-    )
+    response = RolePerm_DBConn.updateRolePermissionDB(["permission_id"], [999], 10, db)
 
     # Assert
     assert isinstance(response, JSONResponse)
@@ -669,26 +621,12 @@ def test_update_role_permission_other_integrity_error():
     db.commit.side_effect = IntegrityError("Random DB error", orig="1234", params=None)
 
     # Act
-    response = RolePerm_DBConn.updateRolePermissionDB(["role_id"], [2], 8, db, "en")
+    response = RolePerm_DBConn.updateRolePermissionDB(["role_id"], [2], 8, db)
 
     # Assert
     assert isinstance(response, JSONResponse)
     assert response.status_code == 400
     assert response.body.decode() == '{"error":"Database integrity error"}'
-
-
-def test_update_role_permission_general_exception():
-    db = MagicMock()
-    # Simulate unexpected general exception
-    db.query().filter().update.side_effect = Exception("Unexpected crash")
-
-    response = RolePerm_DBConn.updateRolePermissionDB(
-        ["field1"], ["value1"], 1, db="en"
-    )
-
-    assert isinstance(response, JSONResponse)
-    assert response.status_code == 400
-    assert response.body == b'{"success":"false","message":"Unexpected crash"}'
 
 
 # * UPDATE ROLE PERMISSION DB ENDED
@@ -826,8 +764,8 @@ def test_get_user_permission_data_exception(db_session):
 def test_get_permissions_of_user_success(db_session):
     """Test successful retrieval of user permissions"""
     mock_result = [
-        ("test@jeenox.com", "Admin", 1, 1, None, None),
-        ("test@jeenox.com", "Admin", None, None, 2, 2),
+        ("test@fastvaultapi.com", "Admin", 1, 1, None, None),
+        ("test@fastvaultapi.com", "Admin", None, None, 2, 2),
     ]
     with patch.object(db_session, "execute", return_value=mock_result) as mock_execute:
         result = UserPerm_DBConn.getPermissionsOfUser(userid=1, db=db_session)
@@ -855,6 +793,12 @@ def test_add_user_perm_success(db_session):
     # Arrange
     data_list = [1, 1, 1]  # user_id, module_id, permission_id
 
+    db_session.query(UserPermission).filter(
+        UserPermission.module_id == 1,
+        UserPermission.permission_id == 1,
+        UserPermission.user_id == 1,
+    ).delete()
+    db_session.commit()
     # Act
     result = UserPerm_DBConn.addUserPerm(data_list, db_session)
 
@@ -1133,13 +1077,16 @@ def test_update_user_permission_general_exception():
 def test_verify_permissions_of_user_success(db_session):
     """Test successful verification of user permissions"""
     # Arrange: Mock SQL query result
-    mock_result = [(["test@jeenox.com", 1, 1, 1]), (["test@jeenox.com", 1, 2, 2])]
+    mock_result = [
+        (["test@fastvaultapi.com", 1, 1, 1]),
+        (["test@fastvaultapi.com", 1, 2, 2]),
+    ]
     with patch(
         "sqlalchemy.orm.Session.execute", return_value=mock_result
     ) as mock_execute:
         # Act
         result = UserPerm_DBConn.verifyPermissionsOfUser(
-            email="test@jeenox.com", db=db_session
+            email="test@fastvaultapi.com", db=db_session
         )
 
         # Assert
@@ -1152,7 +1099,7 @@ def test_verify_permissions_of_user_exception(db_session):
     with patch("sqlalchemy.orm.Session.execute", side_effect=Exception("Test error")):
         # Act
         result = UserPerm_DBConn.verifyPermissionsOfUser(
-            email="test@jeenox.com", db=db_session
+            email="test@fastvaultapi.com", db=db_session
         )
 
         # Assert

@@ -194,7 +194,7 @@ class Perm_Serv:
                     "data": [
                         {
                             "permission_id": i.id,
-                            "name": i.name,
+                            "name": i.permission_name,
                             "created_by": i.created_by,
                         }
                         for i in data
@@ -228,7 +228,11 @@ class Perm_Serv:
                 "message": "Data fetched successfully.",
                 "success": True,
                 "data": [
-                    {"permission_id": i.id, "name": i.name, "created_by": i.created_by}
+                    {
+                        "permission_id": i.id,
+                        "name": i.permission_name,
+                        "created_by": i.created_by,
+                    }
                     for i in data
                 ],
             },
@@ -277,7 +281,7 @@ class Perm_Serv:
         permission_data = permission_data[0]
         recentUpdate, data2update = [], []
 
-        if name and name != permission_data.name:
+        if name and name != permission_data.permission_name:
             recentUpdate.append("name")
             data2update.append(name)
 

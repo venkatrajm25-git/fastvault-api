@@ -4,64 +4,73 @@ import os
 from fastapi.testclient import TestClient
 from faker import Faker
 from sqlalchemy.orm import Session
-
-# ✅ Step 1: Add project root to sys.path *before* any local imports
-PROJECT_ROOT = os.path.abspath(os.path.join(os.path.dirname(__file__), "..", ".."))
-if PROJECT_ROOT not in sys.path:
-    sys.path.insert(0, PROJECT_ROOT)
-
-# ✅ Step 2: Import app AFTER path fix
-from main import app as fastapi_app
 from database.v1.connection import getDBConnection
 
+# Add project root to path
+# print("Python sys.path:", sys.path)
+sys.path.append(os.path.abspath(os.path.join(os.path.dirname(__file__), "..", "..")))
+# print("Updated sys.path:", sys.path)
 
-# ✅ Step 3: Fixtures
+
+# Import FastAPI app
+from main import app as fastapi_app
+
+
 @pytest.fixture
 def app():
-    """Yields the FastAPI app instance"""
     yield fastapi_app
 
 
 @pytest.fixture
 def client(app):
-    """Returns a TestClient instance bound to our FastAPI app"""
     return TestClient(app)
 
 
 @pytest.fixture
 def fake():
-    """Returns a Faker instance"""
     return Faker()
 
 
 @pytest.fixture
 def db_session():
-    """Yields a real SQLAlchemy DB session for ORM tests"""
-    db = next(getDBConnection())  # resolves Depends(getDBConnection)
+    """Yields a real SQLAlchemy DB session for use in ORM tests."""
+    db = next(getDBConnection())  # ✅ This resolves the Depends(getDBConnection)
     try:
         yield db
     finally:
         db.close()
 
 
+# @pytest.fixture
+# def get_valid_token(client):
+#     """Fetch a valid token for testing other APIs."""
+#     response = client.post(
+#         "/v1/auth/login", json={"email": "admin@gmail.com", "password": "admin@123"}
+#     )
+#     assert response.status_code == 200
+#     token = response.json().get("token")
+#     assert token is not None
+#     return token  # ✅ return the actual token, not a boolean
+
+
 @pytest.fixture
 def get_valid_token(client):
-    """Fetch a valid token for testing authenticated endpoints"""
     response = client.post(
         "/v1/auth/login",
         json={"email": "masteradmin@gmail.com", "password": "admin@321"},
     )
-    print("\n[DEBUG] /v1/auth/login response:", response.status_code, response.text)
-    assert response.status_code == 200, f"Login failed: {response.text}"
 
+    assert response.status_code == 200
     token = response.cookies.get("access_token")
-    assert token is not None, "No access token returned"
+    assert token is not None
     return token
 
 
-def get_or_create_by_name(db_session, model, name_field="name", name_value="Default"):
+def get_or_create_by_name(
+    db_session, model, name_field="module_name", name_value="Default"
+):
     """
-    Utility to get or create a DB record by a unique name.
+    Reusable utility to get or create a DB entry by a unique name.
     Example: get_or_create_by_name(db, Module, "name", "TestModule")
     """
     existing = (

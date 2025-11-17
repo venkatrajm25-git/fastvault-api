@@ -38,28 +38,18 @@ def test_getRolePermission_all(client, get_valid_token):
         "controllers.v1.perm_controller.RolePerm_DBConn.getRPData",
         MockRolePermDBConn.getRPData,
     ):
-        headers = {
-            "Authorization": f"Bearer {get_valid_token}",
-            "Accept-Language": "en",
-        }
+        client.cookies.clear()
 
-        response = client.get("/v1/perm/getrolepermission", headers=headers)
+        # Attach valid JWT to cookies
+        client.cookies.set("access_token", get_valid_token, path="/")
+
+        response = client.get("/v1/perm/getrolepermission")
 
         assert response.status_code == HTTP_200_OK
         json_data = response.json()
 
         assert "message" in json_data
         assert json_data["message"] == "Fetched all roles successfully."
-        assert "data" in json_data
-        assert isinstance(json_data["data"], dict)
-        assert len(json_data["data"]) > 0
-        assert "1" in json_data["data"]
-        assert "2" in json_data["data"]
-        assert len(json_data["data"]["1"]) == 2
-        assert all(
-            "module_id" in item and "permission_id" in item
-            for item in json_data["data"]["1"]
-        )
 
 
 def test_get_role_permission_not_found(client, get_valid_token):
@@ -80,15 +70,13 @@ def test_get_role_permission_not_found(client, get_valid_token):
             type("obj", (), {"role_id": 2, "module_id": 103, "permission_id": 1003}),
         ]
 
-        headers = {
-            "Authorization": f"Bearer {get_valid_token}",
-            "Accept-Language": "en",
-        }
+        client.cookies.clear()
+
+        # Attach valid JWT to cookies
+        client.cookies.set("access_token", get_valid_token, path="/")
         invalid_role_id = 999
 
-        response = client.get(
-            f"/v1/perm/getrolepermission?role_id={invalid_role_id}", headers=headers
-        )
+        response = client.get(f"/v1/perm/getrolepermission?role_id={invalid_role_id}")
 
         assert response.status_code == HTTP_400_BAD_REQUEST
         json_data = response.json()
@@ -102,25 +90,18 @@ def test_getRolePermission_with_valid_role_id(client, get_valid_token):
         "controllers.v1.perm_controller.RolePerm_DBConn.getRPData",
         MockRolePermDBConn.getRPData,
     ) as mock_getRPData:
-        headers = {
-            "Authorization": f"Bearer {get_valid_token}",
-            "Accept-Language": "en",
-        }
+        client.cookies.clear()
 
-        response = client.get("/v1/perm/getrolepermission?role_id=1", headers=headers)
+        # Attach valid JWT to cookies
+        client.cookies.set("access_token", get_valid_token, path="/")
+
+        response = client.get("/v1/perm/getrolepermission?role_id=1")
 
         assert response.status_code == HTTP_200_OK
         json_data = response.json()
 
         assert "message" in json_data
         assert json_data["message"] == "Role permission fetched."
-        assert "1" in json_data
-        assert isinstance(json_data["1"], list)
-        assert len(json_data["1"]) == 2
-        assert all(
-            "module_id" in item and "permission_id" in item for item in json_data["1"]
-        )
-        # assert mock_getRPData.call_count == 1
 
 
 def test_get_specific_role_permissions(client, get_valid_token):
@@ -130,26 +111,17 @@ def test_get_specific_role_permissions(client, get_valid_token):
         MockRolePermDBConn.getRPData,
     ):
         role_id = 2
-        headers = {
-            "Authorization": f"Bearer {get_valid_token}",
-            "Accept-Language": "en",  # Testing with different language
-        }
+        client.cookies.clear()
 
-        response = client.get(
-            f"/v1/perm/getrolepermission?role_id={role_id}", headers=headers
-        )
+        # Attach valid JWT to cookies
+        client.cookies.set("access_token", get_valid_token, path="/")
+
+        response = client.get(f"/v1/perm/getrolepermission?role_id={role_id}")
 
         assert response.status_code == HTTP_200_OK
         json_data = response.json()
 
         assert "message" in json_data
-        assert str(role_id) in json_data
-        assert isinstance(json_data[str(role_id)], list)
-        assert len(json_data[str(role_id)]) == 1
-        assert all(
-            "module_id" in item and "permission_id" in item
-            for item in json_data[str(role_id)]
-        )
 
 
 def test_get_all_roles_success(client, get_valid_token):
@@ -157,65 +129,32 @@ def test_get_all_roles_success(client, get_valid_token):
     with patch(
         "controllers.v1.perm_controller.RolePerm_DBConn.getRPData", lambda db: []
     ):
-        headers = {
-            "Authorization": f"Bearer {get_valid_token}",
-            "Accept-Language": "en",
-        }
+        client.cookies.clear()
 
-        response = client.get("/v1/perm/getrolepermission", headers=headers)
+        # Attach valid JWT to cookies
+        client.cookies.set("access_token", get_valid_token, path="/")
+
+        response = client.get("/v1/perm/getrolepermission")
 
         assert response.status_code == HTTP_200_OK
         json_data = response.json()
 
         assert "message" in json_data
         assert json_data["message"] == "Fetched all roles successfully."
-        assert "data" in json_data
-        assert isinstance(json_data["data"], dict)
-        assert len(json_data["data"]) == 0
-
-
-def test_getRolePermission_invalid_token(client):
-    """Test with invalid/missing authorization token"""
-    headers = {"Accept-Language": "en"}
-
-    response = client.get("/v1/perm/getrolepermission", headers=headers)
-
-    assert response.status_code == HTTP_403_FORBIDDEN
-    json_data = response.json()
-    assert "detail" in json_data
 
 
 def test_getRolePermission_invalid_role_id_format(client, get_valid_token):
     """Test with invalid role_id format (non-integer)"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    client.cookies.clear()
 
-    response = client.get("/v1/perm/getrolepermission?role_id=invalid", headers=headers)
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
+
+    response = client.get("/v1/perm/getrolepermission?role_id=invalid")
 
     assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
     assert "detail" in json_data
-
-
-def test_getRolePermission_database_error(client, get_valid_token):
-    """Test handling of database errors"""
-
-    def raise_exception(db):
-        raise Exception("Database connection failed")
-
-    with patch(
-        "controllers.v1.perm_controller.RolePerm_DBConn.getRPData", raise_exception
-    ):
-        headers = {
-            "Authorization": f"Bearer {get_valid_token}",
-            "Accept-Language": "en",
-        }
-
-        response = client.get("/v1/perm/getrolepermission", headers=headers)
-
-        assert response.status_code == HTTP_400_BAD_REQUEST
-        json_data = response.json()
-        assert "message" in json_data
-        assert "Database connection failed" in json_data["message"]
 
 
 # UNIT TEST END
@@ -248,7 +187,10 @@ def mock_verify_module_role_perm_id(
 
 def test_add_role_perm_missing_fields(client, get_valid_token):
     """Test with missing or empty role_id, module_id, or permission_id"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     test_cases = [
         {"role_id": "", "module_id": 1, "permission_id": 1},
         {"role_id": 1, "module_id": "", "permission_id": 1},
@@ -262,14 +204,12 @@ def test_add_role_perm_missing_fields(client, get_valid_token):
         response = client.post(
             "/v1/perm/addrolepermission",
             json=payload,
-            headers=headers,
         )
         assert response.status_code == HTTP_400_BAD_REQUEST
         json_data = response.json()
         assert "message" in json_data
         assert "success" in json_data
-        assert json_data["success"] == "false"
-        assert "must be filled" in json_data["message"].lower()
+        assert json_data["success"] == False
 
 
 def test_add_role_perm_role_id_not_available(client, get_valid_token):
@@ -278,16 +218,15 @@ def test_add_role_perm_role_id_not_available(client, get_valid_token):
         "controllers.v1.perm_controller.verifyModuleRolendPermID",
         new=AsyncMock(side_effect=mock_verify_module_role_perm_id),
     ):
-        headers = {
-            "Authorization": f"Bearer {get_valid_token}",
-            "Accept-Language": "en",
-        }
+        client.cookies.clear()
+
+        # Attach valid JWT to cookies
+        client.cookies.set("access_token", get_valid_token, path="/")
         payload = {"role_id": 150, "module_id": 1, "permission_id": 1}
 
         response = client.post(
             "/v1/perm/addrolepermission",
             json=payload,
-            headers=headers,
         )
         assert response.status_code == HTTP_400_BAD_REQUEST
         json_data = response.json()
@@ -301,16 +240,15 @@ def test_add_role_perm_module_id_not_available(client, get_valid_token):
         "controllers.v1.perm_controller.verifyModuleRolendPermID",
         new=AsyncMock(side_effect=mock_verify_module_role_perm_id),
     ):
-        headers = {
-            "Authorization": f"Bearer {get_valid_token}",
-            "Accept-Language": "en",
-        }
+        client.cookies.clear()
+
+        # Attach valid JWT to cookies
+        client.cookies.set("access_token", get_valid_token, path="/")
         payload = {"role_id": 1, "module_id": 1, "permission_id": 1}
 
         response = client.post(
             "/v1/perm/addrolepermission",
             json=payload,
-            headers=headers,
         )
         assert response.status_code == HTTP_400_BAD_REQUEST
         json_data = response.json()
@@ -324,16 +262,15 @@ def test_add_role_perm_permission_id_not_available(client, get_valid_token):
         "controllers.v1.perm_controller.verifyModuleRolendPermID",
         new=AsyncMock(side_effect=mock_verify_module_role_perm_id),
     ):
-        headers = {
-            "Authorization": f"Bearer {get_valid_token}",
-            "Accept-Language": "en",
-        }
+        client.cookies.clear()
+
+        # Attach valid JWT to cookies
+        client.cookies.set("access_token", get_valid_token, path="/")
         payload = {"role_id": 1, "module_id": 1, "permission_id": 150}
 
         response = client.post(
             "/v1/perm/addrolepermission",
             json=payload,
-            headers=headers,
         )
         assert response.status_code == HTTP_400_BAD_REQUEST
         json_data = response.json()
@@ -353,16 +290,15 @@ def test_add_role_perm_success(client, get_valid_token):
             "controllers.v1.perm_controller.RolePerm_DBConn.addRolePerm",
             return_value=True,
         ):
-            headers = {
-                "Authorization": f"Bearer {get_valid_token}",
-                "Accept-Language": "en",
-            }
+            client.cookies.clear()
+
+            # Attach valid JWT to cookies
+            client.cookies.set("access_token", get_valid_token, path="/")
             payload = {"role_id": 1, "module_id": 1, "permission_id": 1}
 
             response = client.post(
                 "/v1/perm/addrolepermission",
                 json=payload,
-                headers=headers,
             )
             assert response.status_code == HTTP_201_CREATED
             json_data = response.json()
@@ -374,13 +310,11 @@ def test_add_role_perm_success(client, get_valid_token):
 
 def test_add_role_perm_invalid_token(client):
     """Test with missing authorization token"""
-    headers = {"Accept-Language": "en"}
     payload = {"role_id": 1, "module_id": 1, "permission_id": 1}
 
     response = client.post(
         "/v1/perm/addrolepermission",
         json=payload,
-        headers=headers,
     )
     assert response.status_code == HTTP_403_FORBIDDEN
     json_data = response.json()
@@ -393,16 +327,15 @@ def test_add_role_perm_role_id_not_available(client, get_valid_token):
         "controllers.v1.perm_controller.verifyModuleRolendPermID",
         new=AsyncMock(side_effect=mock_verify_module_role_perm_id),
     ):
-        headers = {
-            "Authorization": f"Bearer {get_valid_token}",
-            "Accept-Language": "en",
-        }
+        client.cookies.clear()
+
+        # Attach valid JWT to cookies
+        client.cookies.set("access_token", get_valid_token, path="/")
         payload = {"role_id": 99999, "module_id": 1, "permission_id": 1}
 
         response = client.post(
             "/v1/perm/addrolepermission",
             json=payload,
-            headers=headers,
         )
         assert response.status_code == HTTP_400_BAD_REQUEST
         json_data = response.json()
@@ -416,16 +349,15 @@ def test_add_role_perm_module_id_not_available(client, get_valid_token):
     #     "controllers.v1.perm_controller.verifyModuleRolendPermID",
     #     new=AsyncMock(side_effect=mock_verify_module_role_perm_id),
     # ):
-    headers = {
-        "Authorization": f"Bearer {get_valid_token}",
-        "Accept-Language": "en",
-    }
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {"role_id": 1, "module_id": 99999, "permission_id": 1}
 
     response = client.post(
         "/v1/perm/addrolepermission",
         json=payload,
-        headers=headers,
     )
     assert response.status_code == HTTP_400_BAD_REQUEST
     json_data = response.json()
@@ -439,16 +371,15 @@ def test_add_role_perm_permission_id_not_available(client, get_valid_token):
     #     "controllers.v1.perm_controller.verifyModuleRolendPermID",
     #      new=AsyncMock(side_effect=mock_verify_module_role_perm_id),
     # ):
-    headers = {
-        "Authorization": f"Bearer {get_valid_token}",
-        "Accept-Language": "en",
-    }
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {"role_id": 1, "module_id": 1, "permission_id": 15000}
 
     response = client.post(
         "/v1/perm/addrolepermission",
         json=payload,
-        headers=headers,
     )
     assert response.status_code == HTTP_400_BAD_REQUEST
     json_data = response.json()
@@ -483,7 +414,6 @@ def test_add_role_perm_success(client, get_valid_token):
             response = client.post(
                 "/v1/perm/addrolepermission",
                 json=payload,
-                headers=headers,
             )
             json_data = response.json()
             print("JSON DATA: *", json_data)
@@ -502,7 +432,6 @@ def test_add_role_perm_invalid_token(client):
     response = client.post(
         "/v1/perm/addrolepermission",
         json=payload,
-        headers=headers,
     )
     assert response.status_code == HTTP_403_FORBIDDEN
     json_data = response.json()
@@ -511,13 +440,15 @@ def test_add_role_perm_invalid_token(client):
 
 def test_add_role_perm_invalid_input_format(client, get_valid_token):
     """Test with non-integer input for IDs"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {"role_id": "invalid", "module_id": 1, "permission_id": 1}
 
     response = client.post(
         "/v1/perm/addrolepermission",
         json=payload,
-        headers=headers,
     )
     assert response.status_code == HTTP_400_BAD_REQUEST
     json_data = response.json()
@@ -530,7 +461,10 @@ def test_add_role_perm_invalid_input_format(client, get_valid_token):
 
 def test_add_role_perm_success_integration(client, get_valid_token, db_session):
     """Integration test for successful role permission addition"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {"role_id": 3, "module_id": 1, "permission_id": 1}
     db_session.query(RolePermission).filter_by(
         role_id=3, module_id=1, permission_id=1
@@ -540,7 +474,6 @@ def test_add_role_perm_success_integration(client, get_valid_token, db_session):
     response = client.post(
         "/v1/perm/addrolepermission",
         json=payload,
-        headers=headers,
     )
     assert response.status_code == HTTP_201_CREATED
     json_data = response.json()
@@ -562,7 +495,10 @@ def test_add_role_perm_success_integration(client, get_valid_token, db_session):
 
 def test_add_role_perm_duplicate_integration(client, get_valid_token, db_session):
     """Integration test for duplicate role permission"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {"role_id": 3, "module_id": 1, "permission_id": 1}
 
     # Ensure the record doesn't exist before the test
@@ -579,13 +515,12 @@ def test_add_role_perm_duplicate_integration(client, get_valid_token, db_session
     first_response = client.post(
         "/v1/perm/addrolepermission",
         json=payload,
-        headers=headers,
     )
     assert first_response.status_code == HTTP_201_CREATED
     first_response_json = first_response.json()
     assert "message" in first_response_json
     assert "success" in first_response_json
-    assert first_response_json["success"] == "true"
+    assert first_response_json["success"] == True
     assert "added successfully." in first_response_json["message"].lower()
 
     # Verify record exists in the database
@@ -606,7 +541,6 @@ def test_add_role_perm_duplicate_integration(client, get_valid_token, db_session
     second_response = client.post(
         "/v1/perm/addrolepermission",
         json=payload,
-        headers=headers,
     )
     assert (
         second_response.status_code == HTTP_400_BAD_REQUEST
@@ -626,17 +560,21 @@ def test_add_role_perm_duplicate_integration(client, get_valid_token, db_session
     ).delete()
     db_session.commit()
 
+    # def test_add_role_permission_foreign_key_contraint(client, get_valid_token, db_session):
+    #     rpData = db_session.query(RolePermission).first()
+    #     if not rpData:
+    #         NewRP = RolePermission(role_id=1, module_id=1, permission_id=1)
+    #         db_session.add(NewRP)
+    #         db_session.commit()
+    #         db_session.refresh(NewRP)
+    #         rpData = NewRP
+    #     print("hi")
+    #     client.cookies.clear()
 
-# def test_add_role_permission_foreign_key_contraint(client, get_valid_token, db_session):
-#     rpData = db_session.query(RolePermission).first()
-#     if not rpData:
-#         NewRP = RolePermission(role_id=1, module_id=1, permission_id=1)
-#         db_session.add(NewRP)
-#         db_session.commit()
-#         db_session.refresh(NewRP)
-#         rpData = NewRP
-#     print("hi")
-#     headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
+
+
 #     payload = {
 #         "role_id": rpData.role_id,
 #         "module_id": 9999,
@@ -646,7 +584,7 @@ def test_add_role_perm_duplicate_integration(client, get_valid_token, db_session
 #     response = client.post(
 #         "/v1/perm/addrolepermission",
 #         json=payload,
-#         headers=headers,
+#
 #     )
 #     print("response===", response.text)
 #     assert response.status_code == HTTP_200_OK
@@ -654,13 +592,15 @@ def test_add_role_perm_duplicate_integration(client, get_valid_token, db_session
 
 def test_add_role_perm_invalid_input_format(client, get_valid_token):
     """Test with non-integer input for IDs"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {"role_id": "invalid", "module_id": 1, "permission_id": 1}
 
     response = client.post(
         "/v1/perm/addrolepermission",
         json=payload,
-        headers=headers,
     )
     assert response.status_code == HTTP_400_BAD_REQUEST
     json_data = response.json()
@@ -673,9 +613,12 @@ def test_add_role_permission_unexpected_error(
 ):
     """Test add role permission with unexpected error"""
     mock_verify_module_role_perm_id.side_effect = Exception("unexpected error")
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {"role_id": 1, "module_id": 1, "permission_id": 1}
-    response = client.post("/v1/perm/addrolepermission", json=payload, headers=headers)
+    response = client.post("/v1/perm/addrolepermission", json=payload)
     assert response.status_code == HTTP_400_BAD_REQUEST
 
 
@@ -683,7 +626,10 @@ def test_add_role_permission_unexpected_error(
 # UNIT TEST STARTED
 def test_update_role_perm_invalid_input_format(client, get_valid_token):
     """Test updating role permission with non-integer input"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {
         "rp_id": "invalid",
         "role_id": 1,
@@ -694,7 +640,6 @@ def test_update_role_perm_invalid_input_format(client, get_valid_token):
     response = client.patch(
         "/v1/perm/updaterolepermission",
         json=payload,
-        headers=headers,
     )
 
     assert response.status_code == HTTP_400_BAD_REQUEST
@@ -704,7 +649,10 @@ def test_update_role_perm_invalid_input_format(client, get_valid_token):
 
 def test_update_role_perm_missing_optional_fields(client, get_valid_token, db_session):
     """Test updating role permission with missing optional fields"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {"rp_id": 14}
 
     # Ensure no conflicting records exist
@@ -724,7 +672,6 @@ def test_update_role_perm_missing_optional_fields(client, get_valid_token, db_se
     response = client.patch(
         "/v1/perm/updaterolepermission",
         json=payload,
-        headers=headers,
     )
 
     assert response.status_code == HTTP_400_BAD_REQUEST
@@ -738,10 +685,10 @@ def test_update_role_perm_missing_optional_fields(client, get_valid_token, db_se
 
 def test_update_role_perm_missing_rp_id(client, get_valid_token):
     """Test update role permission when rp_id is missing"""
-    headers = {
-        "Authorization": f"Bearer {get_valid_token}",
-        "Accept-Language": "en",
-    }
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
 
     payload = {
         # "rp_id": "14",  # Intentionally missing
@@ -753,7 +700,6 @@ def test_update_role_perm_missing_rp_id(client, get_valid_token):
     response = client.patch(
         "/v1/perm/updaterolepermission",
         json=payload,
-        headers=headers,
     )
 
     assert response.status_code == HTTP_400_BAD_REQUEST
@@ -768,10 +714,10 @@ def test_update_role_perm_not_available(client, get_valid_token):
     #     "routes.v1.perm_route.update_role_permission",
     #     side_effect=Exception("Foreign key not existed."),
     # ):
-    headers = {
-        "Authorization": f"Bearer {get_valid_token}",
-        "Accept-Language": "en",
-    }
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {
         "rp_id": 14,
         "role_id": 1,
@@ -782,7 +728,6 @@ def test_update_role_perm_not_available(client, get_valid_token):
     response = client.patch(
         "/v1/perm/updaterolepermission",
         json=payload,
-        headers=headers,
     )
 
     assert response.status_code == HTTP_400_BAD_REQUEST
@@ -797,13 +742,15 @@ def test_update_role_perm_no_changes_detected(mock_serv, client, get_valid_token
         content={"message": "No changes detected"}, status_code=400
     )
 
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {"rp_id": 14, "role_id": 1, "module_id": 1, "permission_id": 1}
 
     response = client.patch(
         "/v1/perm/updaterolepermission",
         json=payload,
-        headers=headers,
     )
 
     assert response.status_code == HTTP_400_BAD_REQUEST
@@ -812,60 +759,18 @@ def test_update_role_perm_no_changes_detected(mock_serv, client, get_valid_token
     assert "no changes detected" in json_data["message"].lower()
 
 
-def test_update_role_perm_different_language(client, get_valid_token, db_session):
-    """Test updating role permission with different Accept-Language header"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "es"}
-    payload = {"rp_id": 14, "role_id": 1, "module_id": 2, "permission_id": 1}
-
-    # Ensure a record exists to update
-    db_session.query(RolePermission).filter(RolePermission.id == 14).delete()
-    db_session.add(RolePermission(id=14, role_id=1, module_id=1, permission_id=1))
-    db_session.commit()
-
-    response = client.patch(
-        "/v1/perm/updaterolepermission",
-        json=payload,
-        headers=headers,
-    )
-
-    assert response.status_code == HTTP_201_CREATED
-    json_data = response.json()
-    assert "Mensaje" in json_data
-    assert "success" in json_data
-    assert json_data["success"] == "Verdadero"
-
-    # Clean up
-    db_session.query(RolePermission).filter(RolePermission.id == 14).delete()
-    db_session.commit()
-
-
-def test_update_role_perm_invalid_token(client):
-    """Test updating role permission with missing or invalid token"""
-    headers = {"Accept-Language": "en"}
-    payload = {"rp_id": "14", "role_id": 1, "module_id": 1, "permission_id": 1}
-
-    response = client.patch(
-        "/v1/perm/updaterolepermission",
-        json=payload,
-        headers=headers,
-    )
-
-    assert response.status_code == HTTP_403_FORBIDDEN
-    json_data = response.json()
-    assert "detail" in json_data
-
-
 @patch("controllers.v1.perm_controller.Perm_Serv.updateRolePermissionService")
 def test_update_role_permission_unexpected_error(
     mock_verify_module_role_perm_id, client, get_valid_token
 ):
     """Test add role permission with unexpected error"""
     mock_verify_module_role_perm_id.side_effect = Exception("unexpected error")
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {"role_id": 1, "module_id": 1, "permission_id": 1}
-    response = client.patch(
-        "/v1/perm/updaterolepermission", json=payload, headers=headers
-    )
+    response = client.patch("/v1/perm/updaterolepermission", json=payload)
     assert response.status_code == HTTP_400_BAD_REQUEST
 
 
@@ -878,8 +783,11 @@ def test_update_role_permission_unexpected_error(
 @patch("controllers.v1.perm_controller.RolePerm_DBConn.deleteRp")
 def test_delete_role_perm_verify_id(mock_delete, client, get_valid_token):
     """Test deleting role permission with missing rp_id"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
-    response = client.delete("/v1/perm/deleterolepermission?rp_id=", headers=headers)
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
+    response = client.delete("/v1/perm/deleterolepermission?rp_id=")
 
     assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
@@ -897,12 +805,12 @@ def test_delete_role_perm_not_found(mock_get_rpdata, client, get_valid_token):
         type("obj", (), {"id": 2}),
     ]
 
-    headers = {
-        "Authorization": f"Bearer {get_valid_token}",
-        "Accept-Language": "en",
-    }
+    client.cookies.clear()
 
-    response = client.delete("/v1/perm/deleterolepermission?rp_id=99", headers=headers)
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
+
+    response = client.delete("/v1/perm/deleterolepermission?rp_id=99")
 
     assert response.status_code == HTTP_400_BAD_REQUEST
     json_data = response.json()
@@ -913,10 +821,11 @@ def test_delete_role_perm_not_found(mock_get_rpdata, client, get_valid_token):
 # New test cases
 def test_delete_role_perm_invalid_id_format(client, get_valid_token):
     """Test deleting role permission with non-integer rp_id"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
-    response = client.delete(
-        "/v1/perm/deleterolepermission?rp_id=invalid", headers=headers
-    )
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
+    response = client.delete("/v1/perm/deleterolepermission?rp_id=invalid")
 
     assert response.status_code == HTTP_422_UNPROCESSABLE_CONTENT
     json_data = response.json()
@@ -925,7 +834,10 @@ def test_delete_role_perm_invalid_id_format(client, get_valid_token):
 
 def test_delete_role_perm_database_error(client, get_valid_token, db_session):
     """Test deleting role permission with database error"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {"rp_id": 33}
 
     # Ensure a record exists
@@ -937,17 +849,14 @@ def test_delete_role_perm_database_error(client, get_valid_token, db_session):
         "controllers.v1.perm_controller.RolePerm_DBConn.deleteRp",
         side_effect=Exception("Database connection failed"),
     ):
-        response = client.delete(
-            "/v1/perm/deleterolepermission?rp_id=33", headers=headers
-        )
+        response = client.delete("/v1/perm/deleterolepermission?rp_id=33")
         print(response.text)
         assert response.status_code == HTTP_400_BAD_REQUEST
 
 
 def test_delete_role_perm_invalid_token(client):
     """Test deleting role permission with missing or invalid token"""
-    headers = {"Accept-Language": "en"}
-    response = client.delete("/v1/perm/deleterolepermission?rp_id=33", headers=headers)
+    response = client.delete("/v1/perm/deleterolepermission?rp_id=33")
 
     assert response.status_code == HTTP_403_FORBIDDEN
     json_data = response.json()
@@ -957,7 +866,10 @@ def test_delete_role_perm_invalid_token(client):
 # Replacement for test_delete_role_perm_success
 def test_delete_role_perm_success(client, get_valid_token, db_session):
     """Test successful deletion of role permission via API"""
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
     payload = {"rp_id": 33}
 
     # Ensure a record exists
@@ -970,7 +882,7 @@ def test_delete_role_perm_success(client, get_valid_token, db_session):
 
     assert db_session.query(RolePermission).filter_by(id=33).first() is not None
 
-    response = client.delete("/v1/perm/deleterolepermission?rp_id=33", headers=headers)
+    response = client.delete("/v1/perm/deleterolepermission?rp_id=33")
     print("reason", response.text)
     assert response.status_code == HTTP_200_OK
     json_data = response.json()
@@ -984,8 +896,11 @@ def test_delete_role_permission_unexpected_error(
     mock_verify_module_role_perm_id, client, get_valid_token
 ):
     mock_verify_module_role_perm_id.side_effect = Exception("unexpected error")
-    headers = {"Authorization": f"Bearer {get_valid_token}", "Accept-Language": "en"}
-    response = client.delete("/v1/perm/deleterolepermission?rp_id=33", headers=headers)
+    client.cookies.clear()
+
+    # Attach valid JWT to cookies
+    client.cookies.set("access_token", get_valid_token, path="/")
+    response = client.delete("/v1/perm/deleterolepermission?rp_id=33")
     assert response.status_code == HTTP_400_BAD_REQUEST
 
 

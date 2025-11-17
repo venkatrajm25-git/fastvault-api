@@ -5,7 +5,6 @@ from model.v1.user_model import Role
 from sqlalchemy.orm import Session
 
 
-
 import os
 import logging
 from logging.handlers import RotatingFileHandler
@@ -33,7 +32,6 @@ else:
 
 log_handler.setFormatter(formatter)
 role_logger.addHandler(log_handler)
-
 
 
 class RoleController:

@@ -17,7 +17,7 @@ router = APIRouter()
 @router.get("/getuser")
 async def get_user(
     id: Optional[int] = Query(None),
-    current_user: dict = Depends(token_required(required_permission=[(2, 2)])),
+    current_user: dict = Depends(token_required(required_permission=(2, 2))),
     db: Session = Depends(getDBConnection),
 ):
     return await UserController.getAllUser(id, db)
